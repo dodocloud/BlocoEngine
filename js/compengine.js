@@ -30,6 +30,8 @@ class Scene {
 		Scene.scene = this;
 
 		this.context = context;
+		// list of global attributes attached to whole game
+		this.globalAttributes = [];
 
 		// messages keys and all subscribers that listens to specific keys
 		this.subscribers = new Map();
@@ -42,6 +44,18 @@ class Scene {
 
 		this.objectsToRemove = new Array();
 		this.componentsToRemove = new Array();
+	}
+	
+	addGlobalAttribute(key, val) {
+		this.globalAttributes.set(key, val);
+	}
+
+	getGlobalAttribute(key) {
+		return this.globalAttributes.get(key);
+	}
+
+	removeGlobalAttribute(key) {
+		this.globalAttributes.delete (key);
 	}
 
 	// adds a new game object into scene
@@ -151,18 +165,18 @@ class Scene {
 
 	}
 
-	_update(delta, absolute) {
+	update(delta, absolute) {
 		for (let[key, gameObject]of this.gameObjects) {
-			gameObject._update(delta, absolute);
+			gameObject.update(delta, absolute);
 		}
 
 		this._removePendingComponents();
 		this._removePendingGameObjects();
 	}
 
-	_draw(ctx) {
+	draw(ctx) {
 		for (let[key, gameObject]of this.gameObjects) {
-			gameObject._draw(ctx);
+			gameObject.draw(ctx);
 		}
 	}
 }
@@ -212,13 +226,13 @@ class GameObject {
 		this.attributes.delete (key);
 	}
 
-	_update(delta, absolute) {
+	update(delta, absolute) {
 		for (let component of this.components) {
 			component.update(delta, absolute);
 		}
 	}
 
-	_draw(ctx) {
+	draw(ctx) {
 		for (let component of this.components) {
 			component.draw(ctx)
 		}
@@ -270,6 +284,7 @@ class Component {
 }
 
 Component.idCounter = 0;
+
 
 class Renderer extends Component {
 	draw(ctx) {
