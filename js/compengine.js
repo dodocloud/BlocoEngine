@@ -36,8 +36,13 @@ class Scene {
 
 		this.objectsToRemove = new Array();
 		this.componentsToRemove = new Array();
+		this.pendingInvocations = new Array();
 	}
 
+	addPendingInvocation(delay, func){
+		this.pendingInvocations.push({ delay : delay, time : 0, func : func });
+	}
+	
 	addGlobalAttribute(key, val) {
 		this.globalAttributes.set(key, val);
 	}
@@ -82,7 +87,6 @@ class Scene {
 		this._sendmsg(new Msg(MSG_OBJECT_ADDED, null, obj));
 	}
 
-	
 	addGameObjectComponent(component, owner) {
 		component.owner = owner;
 		component.scene = this;
@@ -101,6 +105,7 @@ class Scene {
 				result.push(gameObject);
 			}
 		}
+		
 		return result;
 	}
 	
@@ -211,6 +216,17 @@ class Scene {
 
 		this._removePendingComponents();
 		this._removePendingGameObjects();
+		
+		var i = this.pendingInvocations.length
+		while (i--) {
+			let invocation = this.pendingInvocations[i];
+			invocation.time+=delta;
+
+			if (invocation.time >= invocation.delay) { 
+				invocation.func();
+				this.pendingInvocations.splice(i, 1);
+			} 
+		}
 	}
 
 	draw(ctx) {
