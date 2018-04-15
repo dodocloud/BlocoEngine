@@ -356,7 +356,11 @@ class Mesh {
 		this.bbox = new BBox();
 	}
 
-	updateBoundingBox(trans) {
+	_updateTransform(trans){
+		this._updateBoundingBox(trans);
+	}
+
+	_updateBoundingBox(trans) {
 		this.bbox.topLeftX = trans.posX;
 		this.bbox.topLeftY = trans.posY;
 		this.bbox.bottomRightX = trans.posX + this.width;
@@ -370,6 +374,28 @@ class Sprite extends Mesh {
 		this.offsetX = offsetX;
 		this.offsetY = offsetY;
 		this.image = image;
+		this.transform = null; // for some circumstances it can have a transformation entity
+	}
+}
+
+class MultiSprite extends Mesh {
+	constructor(atlas){
+		super(1,1); 
+		this.atlas = atlas;
+		this.sprites = [];
+	}
+
+	addSprite(sprite, transform) {
+		sprite.trans = transform; // assign a transformation entity
+		this.sprites.push(sprite);
+	}
+
+	_updateTransform(parentTrans){
+		super._updateTransform(parentTrans);
+		
+		for(let sprite of this.sprites){
+			sprite.trans._updateTransform(parentTrans);
+		}
 	}
 }
 
@@ -387,19 +413,16 @@ class Trans {
 		this.absRotation = 0;
 	}
 
-	_updateTransform(owner, parent) {
+	_updateTransform(parentTrans) {
 		
-		if (parent != null) {
-			let ownerMesh = owner.mesh;
-			let parentTrans = parent.trans;
+		if (parentTrans != null) {
 
 			this.absPosX = this.posX + parentTrans.absPosX;
 			this.absPosY = this.posY + parentTrans.absPosY;
-			this.absRotation = this.rotation + parent.trans.absRotation;
+			this.absRotation = this.rotation + parentTrans.absRotation;
 
 			if (parentTrans.absRotation != 0) {
 				// rotate 
-				let unitSize = owner.scene.unitSize;
 				let parentOffsetX = parentTrans.rotationOffsetX;
 				let parentOffsetY = parentTrans.rotationOffsetY;
 				let ownerOffsetX = this.rotationOffsetX;
@@ -561,9 +584,8 @@ class GameObject {
 		if (this.state & STATE_UPDATABLE == STATE_UPDATABLE) {
 			this.submitChanges(false);
 
-			this.mesh.updateBoundingBox(this.trans);
-
-			this.trans._updateTransform(this, this.parent);
+			this.mesh._updateTransform(this.trans);
+			this.trans._updateTransform(this.parent == null ? null : this.parent.trans);
 
 			for (let component of this.components) {
 				component.update(delta, absolute);
