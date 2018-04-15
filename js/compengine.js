@@ -139,11 +139,13 @@ class Scene {
 	}
 
 	_removeComponentImmediately(component) {
-		let allMsgKeys = this.subscribedMessages.get(component.id);
 		this.subscribedMessages.delete (component.id);
 
-		for (let msgKey of allMsgKeys) {
-			this.subscribers.get(msgKey).delete (component.id);
+		if(this.subscribedMessages.has(component.id)) {
+			let allMsgKeys = this.subscribedMessages.get(component.id);
+			for (let msgKey of allMsgKeys) {
+				this.subscribers.get(msgKey).delete (component.id);
+			}	
 		}
 	}
 
