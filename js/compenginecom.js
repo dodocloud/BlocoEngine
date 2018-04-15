@@ -46,14 +46,14 @@ class DebugComponent extends Component {
 		let posY = bb.topLeftY * UNIT_SIZE;
 		let size = bb.getSize();
 		
-		if(node.tag == "cannon"){
-			node.trans.rotationOffsetX = node.trans.rotationOffsetY = 0;
+
+			//node.trans.rotationOffsetX = node.trans.rotationOffsetY = 0;
 		if(size.width != 0 && size.height != 0){
 			ctx.rect(posX, posY, size.width * UNIT_SIZE, size.height * UNIT_SIZE);
 		}
 
 		ctx.rect(node.trans.absPosX * UNIT_SIZE, node.trans.absPosY* UNIT_SIZE, 10,10);
-	}
+	
 		for(let [id, child] of node.children) {
 			this._drawBoundingBox(ctx,child);	
 		}
@@ -92,6 +92,12 @@ class DebugComponent extends Component {
 	}
 }
 
+class DummyRotation extends Component {
+	update(delta, absolute){
+		this.owner.trans.rotation += 0.01;
+	}
+}
+
 // Rendering component that can render any mesh
 class BasicRenderer extends Component {
 
@@ -114,6 +120,7 @@ class BasicRenderer extends Component {
 	}
 
 	_drawRectMesh(ctx, mesh) {
+		console.log("f");
 		let trans = this.owner.trans;
 		let posX = trans.absPosX * UNIT_SIZE;
 		let posY = trans.absPosY * UNIT_SIZE;

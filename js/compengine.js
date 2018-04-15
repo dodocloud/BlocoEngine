@@ -424,15 +424,25 @@ class Mesh {
 			let boxWidth = this.width * Math.abs(Math.cos(trans.absRotation)) + this.height * Math.abs(Math.sin(trans.absRotation));
 			let boxHeight = this.height * Math.abs(Math.cos(trans.absRotation)) + this.width * Math.abs(Math.sin(trans.absRotation));
 
-			let centerX = trans.rotationOffsetX + this.width / 2;
-			let centerY = trans.rotationOffsetY + this.height / 2;
-			let offsetX = centerX * Math.abs(Math.cos(trans.absRotation)) + centerX * Math.abs(Math.sin(trans.absRotation));
-			let offsetY = centerY * Math.abs(Math.cos(trans.absRotation)) + centerY * Math.abs(Math.sin(trans.absRotation));
+			let parentTrans = trans;
 
-			this.bbox.topLeftX = trans.absPosX - offsetX * Math.sign(Math.cos(trans.absRotation));
-			this.bbox.topLeftY = trans.absPosY - offsetY * Math.sign(Math.sin(trans.absRotation));
-			this.bbox.bottomRightX = this.bbox.topLeftX + boxWidth * Math.sign(Math.cos(trans.absRotation));
-			this.bbox.bottomRightY = this.bbox.topLeftY + boxHeight * Math.sign(Math.sin(trans.absRotation));
+			let absPosX = parentTrans.absPosX - parentTrans.rotationOffsetX + this.width/2;
+			let absPosY = parentTrans.absPosY - parentTrans.rotationOffsetY + this.height/2;
+			let distX = (absPosX  - parentTrans.absPosX);
+			let distY = (absPosY  - parentTrans.absPosY);
+			let length = Math.sqrt(distX * distX + distY * distY);
+			
+			let angle = parentTrans.absRotation + Math.atan2(distY, distX);
+			let rotPosX = length * Math.cos(angle);
+			let rotPosY = length * Math.sin(angle);
+
+			absPosX = parentTrans.absPosX + rotPosX;
+			absPosY = parentTrans.absPosY + rotPosY;
+
+			this.bbox.topLeftX = absPosX - boxWidth/2;
+			this.bbox.topLeftY = absPosY - boxHeight/2;
+			this.bbox.bottomRightX = this.bbox.topLeftX + boxWidth;
+			this.bbox.bottomRightY = this.bbox.topLeftY + boxHeight;
 		} else {
 			this.bbox.topLeftX = trans.absPosX - trans.rotationOffsetX;
 			this.bbox.topLeftY = trans.absPosY - trans.rotationOffsetY;
@@ -572,12 +582,15 @@ class Trans {
 			this.absRotation = this.rotation + parentTrans.absRotation;
 
 			if (parentTrans.absRotation != 0) {
-				// distance between 
-				let distX = (this.absPosX  - parentTrans.absPosX);
-				let distY = (this.absPosY  - parentTrans.absPosY);
+
+				let distX = (this.absPosX - (parentTrans.absPosX));
+				let distY = (this.absPosY - (parentTrans.absPosY));
+
 				let length = Math.sqrt(distX * distX + distY * distY);
-				let rotPosX = length * Math.cos(parentTrans.absRotation);
-				let rotPosY = length * Math.sin(parentTrans.absRotation);
+				// always use atan2 if you don't want to deal with cos/sin freaking signs
+				let angle = parentTrans.absRotation + Math.atan2(distY, distX);
+				let rotPosX = length * Math.cos(angle);
+				let rotPosY = length * Math.sin(angle);
 				this.absPosX = parentTrans.absPosX + rotPosX;
 				this.absPosY = parentTrans.absPosY + rotPosY;
 			}
