@@ -452,12 +452,13 @@ class GameObject {
 	}
 
 	submitChanges(recursively = false) {
-		// start with game objects
+		
 		this._addPendingGameObjects(!recursively);
 
+		// add game objects first 
 		if (recursively) {
 			for (let [key, val] of this.children) {
-				val.submitChanges(true);
+				val._addPendingGameObjects();
 			}
 		}
 
@@ -466,6 +467,15 @@ class GameObject {
 
 		this._removePendingComponents();
 		this._removePendingGameObjects(!recursively);
+
+		// update other collections
+		if (recursively) {
+			for (let [key, val] of this.children) {
+				val._addPendingComponents();
+				val._removePendingComponents();
+				val._removePendingGameObjects(true);
+			}
+		}
 	}
 
 	hasFlag(flag) {
