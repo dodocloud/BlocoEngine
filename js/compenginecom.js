@@ -16,7 +16,7 @@ class DebugComponent extends Component {
 		var self = this;
 		
 		// todo draw method is replaced which is not a good approach
-		this.scene.draw = () => {
+	/*	this.scene.draw = () => {
 			for (let gameObject of self.scene.sortedObjects) {
 				gameObject.draw(self.scene.canvasCtx);
 			}
@@ -27,7 +27,7 @@ class DebugComponent extends Component {
 			self._drawBoundingBox(self.scene.canvasCtx, self.owner);
 			self.scene.canvasCtx.stroke();
 			self.scene.canvasCtx.strokeStyle = strokeStyle;
-		};
+		};*/
 
 	}
 
@@ -92,12 +92,6 @@ class DebugComponent extends Component {
 	}
 }
 
-class DummyRotation extends Component {
-	update(delta, absolute){
-		this.owner.trans.rotation += 0.01;
-	}
-}
-
 // Rendering component that can render any mesh
 class BasicRenderer extends Component {
 
@@ -120,7 +114,6 @@ class BasicRenderer extends Component {
 	}
 
 	_drawRectMesh(ctx, mesh) {
-		console.log("f");
 		let trans = this.owner.trans;
 		let posX = trans.absPosX * UNIT_SIZE;
 		let posY = trans.absPosY * UNIT_SIZE;

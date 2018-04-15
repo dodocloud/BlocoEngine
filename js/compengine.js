@@ -97,7 +97,11 @@ class Scene {
 		return result;
 	}
 
-	// finds a first object with a given tag
+	/**
+	 * Finds a first object with a given tag
+	 * @param {String} tag
+	 * @returns {GameObject} 
+	 */
 	findFirstObjectByTag(tag) {
 		if (this.gameObjectTags.has(tag)) {
 			for (let [key, gameObject] of this.gameObjectTags.get(tag)) {
@@ -410,7 +414,7 @@ class Mesh {
 		this.height = height;
 		/**
          * Bounding box
-         * @type {number}
+         * @type {BBox}
          */
 		this.bbox = new BBox();
 	}

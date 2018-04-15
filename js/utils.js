@@ -21,6 +21,11 @@ function circleIntersection(x1, y1, r1, x2, y2, r2) {
 	return false;
 }
 
+function isTime(frequency, lastTime, currentTime){
+	let delta = currentTime - lastTime;
+	return delta > 1/frequency;
+}
+
 
 // Get a random int between low and high, inclusive
 function randRange(low, high) {
