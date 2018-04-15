@@ -251,6 +251,21 @@ class GameObject {
 			component.draw(ctx)
 		}
 	}
+	
+	intersects(other){
+		return this._horizontalIntersection(other) >= 0 &&
+		this._verticalIntersection(other) >= 0;
+	}
+	
+	_horizontalIntersection(other) {
+		return Math.min(other.posX + other.sprite.width, this.posX + this.sprite.width) 
+		- Math.max(other.posX, this.posX);
+	}
+	
+	_verticalIntersection(other) {
+		return -Math.max(other.posY - other.sprite.height, this.posY - this.sprite.height) 
+		+ Math.min(other.posY, this.posY);
+	}
 }
 GameObject.idCounter = 0;
 
