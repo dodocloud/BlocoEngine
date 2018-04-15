@@ -40,16 +40,20 @@ class DebugComponent extends Component {
 
 	_drawBoundingBox(ctx, node) {
 		if(node.tag.indexOf("bubble") != -1) return;
-		
+
 		let bb = node.mesh.bbox;
 		let posX = bb.topLeftX * UNIT_SIZE;
 		let posY = bb.topLeftY * UNIT_SIZE;
 		let size = bb.getSize();
 		
+		if(node.tag == "cannon"){
+			node.trans.rotationOffsetX = node.trans.rotationOffsetY = 0;
 		if(size.width != 0 && size.height != 0){
 			ctx.rect(posX, posY, size.width * UNIT_SIZE, size.height * UNIT_SIZE);
 		}
 
+		ctx.rect(node.trans.absPosX * UNIT_SIZE, node.trans.absPosY* UNIT_SIZE, 10,10);
+	}
 		for(let [id, child] of node.children) {
 			this._drawBoundingBox(ctx,child);	
 		}
@@ -115,14 +119,14 @@ class BasicRenderer extends Component {
 		let posY = trans.absPosY * UNIT_SIZE;
 		let originX = trans.rotationOffsetX * UNIT_SIZE;
 		let originY = trans.rotationOffsetY * UNIT_SIZE;
-		ctx.translate(posX + originX, posY + originY);
+		ctx.translate(posX, posY);
 		ctx.rotate(trans.absRotation);
 		let fillStyle = ctx.fillStyle;
 		ctx.fillStyle = mesh.fillStyle;
 		ctx.fillRect(-originX, -originY, mesh.width * UNIT_SIZE, mesh.height * UNIT_SIZE);
 		ctx.fillStyle = fillStyle;
 		ctx.rotate(-trans.absRotation);
-		ctx.translate(-(posX + originX), -(posY + originY));
+		ctx.translate(-(posX), -(posY));
 	}
 
 	_drawImageMesh(ctx, mesh) {
@@ -131,11 +135,11 @@ class BasicRenderer extends Component {
 		let posY = trans.absPosY * UNIT_SIZE;
 		let originX = trans.rotationOffsetX * UNIT_SIZE;
 		let originY = trans.rotationOffsetY * UNIT_SIZE;
-		ctx.translate(posX + originX, posY + originY);
+		ctx.translate(posX, posY);
 		ctx.rotate(trans.absRotation);
 		ctx.drawImage(mesh.image, 0, 0, mesh.image.width, mesh.image.height, -originX, -originY, mesh.image.width, mesh.image.height);
 		ctx.rotate(-trans.absRotation);
-		ctx.translate(-(posX + originX), -(posY + originY));
+		ctx.translate(-(posX), -(posY));
 	}
 
 	_drawSpriteMesh(ctx, mesh, trans) {
@@ -143,12 +147,12 @@ class BasicRenderer extends Component {
 		let posY = trans.absPosY * UNIT_SIZE;
 		let originX = trans.rotationOffsetX * UNIT_SIZE;
 		let originY = trans.rotationOffsetY * UNIT_SIZE;
-		ctx.translate(posX + originX, posY + originY);
+		ctx.translate(posX, posY);
 		ctx.rotate(trans.absRotation);
 		ctx.drawImage(mesh.image, mesh.offsetX, mesh.offsetY,
 			mesh.width * UNIT_SIZE, mesh.height * UNIT_SIZE, -originX, -originY, mesh.width * UNIT_SIZE, mesh.height * UNIT_SIZE);
 		ctx.rotate(-trans.absRotation);
-		ctx.translate(-(posX + originX), -(posY + originY));
+		ctx.translate(-posX, -posY);
 	}
 
 	_drawMultiSpriteMesh(ctx, mesh) {

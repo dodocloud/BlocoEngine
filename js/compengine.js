@@ -420,25 +420,24 @@ class Mesh {
 	}
 
 	_updateBoundingBox(trans) {
-		if (false && trans.absRotation != 0) {
-			// rotate 
-			let distX = (this.bbox.bottomRightX - (parentTrans.absPosX));
-			let distY = (this.bbox.bottomRightY - (parentTrans.absPosY));
+		if (trans.absRotation != 0) {
+			let boxWidth = this.width * Math.abs(Math.cos(trans.absRotation)) + this.height * Math.abs(Math.sin(trans.absRotation));
+			let boxHeight = this.height * Math.abs(Math.cos(trans.absRotation)) + this.width * Math.abs(Math.sin(trans.absRotation));
 
-			let length = Math.sqrt(distX * distX + distY * distY);
-			let angle = parentTrans.absRotation + Math.atan2(distY, distX);
-			let rotPosX = length * Math.cos(angle);
-			let rotPosY = length * Math.sin(angle);
-			this.absPosX = parentTrans.absPosX + parentOffsetX + rotPosX - ownerOffsetX;
-			this.absPosY = parentTrans.absPosY + parentOffsetY + rotPosY - ownerOffsetY;
+			let centerX = trans.rotationOffsetX + this.width / 2;
+			let centerY = trans.rotationOffsetY + this.height / 2;
+			let offsetX = centerX * Math.abs(Math.cos(trans.absRotation)) + centerX * Math.abs(Math.sin(trans.absRotation));
+			let offsetY = centerY * Math.abs(Math.cos(trans.absRotation)) + centerY * Math.abs(Math.sin(trans.absRotation));
 
-			this.bbox.bottomRightX = trans.absPosX + this.width * Math.cos(trans.absRotation);
-			this.bbox.bottomRightY = trans.absPosY + this.height * Math.sin(trans.absRotation);
+			this.bbox.topLeftX = trans.absPosX - offsetX * Math.sign(Math.cos(trans.absRotation));
+			this.bbox.topLeftY = trans.absPosY - offsetY * Math.sign(Math.sin(trans.absRotation));
+			this.bbox.bottomRightX = this.bbox.topLeftX + boxWidth * Math.sign(Math.cos(trans.absRotation));
+			this.bbox.bottomRightY = this.bbox.topLeftY + boxHeight * Math.sign(Math.sin(trans.absRotation));
 		} else {
-			this.bbox.topLeftX = trans.absPosX;
-			this.bbox.topLeftY = trans.absPosY;
-			this.bbox.bottomRightX = trans.absPosX + this.width;
-			this.bbox.bottomRightY = trans.absPosY + this.height;
+			this.bbox.topLeftX = trans.absPosX - trans.rotationOffsetX;
+			this.bbox.topLeftY = trans.absPosY - trans.rotationOffsetY;
+			this.bbox.bottomRightX = this.bbox.topLeftX + this.width;
+			this.bbox.bottomRightY = this.bbox.topLeftY + this.height;
 		}
 	}
 }
@@ -573,21 +572,14 @@ class Trans {
 			this.absRotation = this.rotation + parentTrans.absRotation;
 
 			if (parentTrans.absRotation != 0) {
-				// rotate 
-				let parentOffsetX = parentTrans.rotationOffsetX;
-				let parentOffsetY = parentTrans.rotationOffsetY;
-				let ownerOffsetX = this.rotationOffsetX;
-				let ownerOffsetY = this.rotationOffsetY;
-
-				let distX = (this.absPosX + ownerOffsetX - (parentTrans.absPosX + parentOffsetX));
-				let distY = (this.absPosY + ownerOffsetY - (parentTrans.absPosY + parentOffsetY));
-
+				// distance between 
+				let distX = (this.absPosX  - parentTrans.absPosX);
+				let distY = (this.absPosY  - parentTrans.absPosY);
 				let length = Math.sqrt(distX * distX + distY * distY);
-				let angle = parentTrans.absRotation + Math.atan2(distY, distX);
-				let rotPosX = length * Math.cos(angle);
-				let rotPosY = length * Math.sin(angle);
-				this.absPosX = parentTrans.absPosX + parentOffsetX + rotPosX - ownerOffsetX;
-				this.absPosY = parentTrans.absPosY + parentOffsetY + rotPosY - ownerOffsetY;
+				let rotPosX = length * Math.cos(parentTrans.absRotation);
+				let rotPosY = length * Math.sin(parentTrans.absRotation);
+				this.absPosX = parentTrans.absPosX + rotPosX;
+				this.absPosY = parentTrans.absPosY + rotPosY;
 			}
 		} else {
 			this.absPosX = this.posX;
