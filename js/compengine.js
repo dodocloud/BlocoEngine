@@ -380,7 +380,21 @@ class Mesh {
 	}
 }
 
-class Sprite extends Mesh {
+class RectMesh extends Mesh {
+	constructor(fillStyle, width, height) {
+		super(width, height);
+		this.fillStyle = fillStyle;
+	}
+}
+
+class ImageMesh extends Mesh {
+	constructor(image, scene){
+		super(image.width/scene.unitSize, image.height/scene.unitSize);
+		this.image = image;
+	}
+}
+
+class SpriteMesh extends Mesh {
 	constructor(offsetX, offsetY, width, height, image) {
 		super(width, height);
 		this.offsetX = offsetX;
@@ -389,7 +403,7 @@ class Sprite extends Mesh {
 	}
 }
 
-class MultiSprite extends Sprite {
+class MultiSprite extends SpriteMesh {
 	constructor(id, trans, offsetX, offsetY, width, height, image) {
 		super(offsetX, offsetY, width, height, image);
 		this.id = id;
