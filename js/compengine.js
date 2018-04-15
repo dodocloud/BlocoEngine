@@ -1,14 +1,4 @@
 
-class Sprite {
-	constructor(atlas, offsetX, offsetY, width, height) {
-		this.atlas = atlas;
-		this.offsetX = offsetX;
-		this.offsetY = offsetY;
-		this.width = width;
-		this.height = height;
-	}
-}
-
 const MSG_OBJECT_ADDED = 1;
 const MSG_OBJECT_REMOVED = 2;
 
@@ -31,7 +21,7 @@ class Scene {
 
 		this.context = context;
 		// list of global attributes attached to whole game
-		this.globalAttributes = [];
+		this.globalAttributes = new Map();
 
 		// messages keys and all subscribers that listens to specific keys
 		this.subscribers = new Map();
@@ -60,14 +50,14 @@ class Scene {
 
 	// adds a new game object into scene
 	addGameObject(obj) {
+		obj.scene = this;
+				
 		// initialize all components
 		for (let component of obj.components) {
 			component.owner = obj;
 			component.scene = this;
 			component.oninit();
 		}
-
-		obj.scene = this;
 
 		if (!this.gameObjectTags.has(obj.tag)) {
 			this.gameObjectTags.set(obj.tag, new Map());
@@ -284,16 +274,6 @@ class Component {
 }
 
 Component.idCounter = 0;
-
-
-class Renderer extends Component {
-	draw(ctx) {
-		if (this.owner.sprite != null) {
-			ctx.drawImage(this.owner.sprite.atlas, this.owner.sprite.offsetX, this.owner.sprite.offsetY,
-				this.owner.sprite.width, this.owner.sprite.height, this.owner.posX, this.owner.posY, this.owner.sprite.width, this.owner.sprite.height);
-		}
-	}
-}
 
 class InputManager extends Component {
 
