@@ -42,6 +42,14 @@ class Scene {
 		});
 	}
 
+	addGlobalComponent(cmp){
+		this.root.addComponent(cmp);
+	}
+
+	removeGlobalComponent(cmp){
+		this.root.removeComponent(cmp);
+	}
+
 	addGlobalGameObject(obj) {
 		this.root.addGameObject(obj);
 	}
@@ -148,7 +156,6 @@ class Scene {
 	update(delta, absolute) {
 		// update
 		this.root.update(delta, absolute);
-
 		this.submitChanges(false);
 
 		// execute pending invocations
@@ -163,8 +170,6 @@ class Scene {
 			}
 		}
 	}
-
-
 
 	// executes the draw cycle
 	draw() {
@@ -284,7 +289,7 @@ class Flags {
 				case 3: return (this.flags4 & binary) == binary;
 			}
 		} else {
-			throw Error("Flag values beyond 128 are not supported");
+			throw new Error("Flag values beyond 128 are not supported");
 		}
 	}
 
@@ -325,7 +330,7 @@ class Flags {
 				case 3: if (set) (this.flags4 |= binary); else (this.flags4 &= ~binary);
 			}
 		} else {
-			throw Error("Flag values beyond 128 are not supported");
+			throw new Error("Flag values beyond 128 are not supported");
 		}
 	}
 }
@@ -427,7 +432,7 @@ class MultiSpriteCollection extends Mesh {
 
 	addSprite(sprite) {
 		if (!sprite instanceof MultiSprite) {
-			throw Error("Sprite must be instance of MultiSprite class");
+			throw new Error("Sprite must be instance of MultiSprite class");
 		}
 
 		this.sprites.set(sprite.id, sprite);
