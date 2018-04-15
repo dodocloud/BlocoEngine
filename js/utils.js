@@ -21,6 +21,7 @@ function circleIntersection(x1, y1, r1, x2, y2, r2) {
 	return false;
 }
 
+
 // Get a random int between low and high, inclusive
 function randRange(low, high) {
 	return Math.floor(low + Math.random() * (high - low + 1));
