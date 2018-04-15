@@ -328,12 +328,12 @@ class BBox {
 	}
 
 	getSize() {
-		return { "width": (this.bottomRightX - this.topLeftX), "height": (this.bottomRightY - this.topLeftY) };
+		return { width: (this.bottomRightX - this.topLeftX), height: (this.bottomRightY - this.topLeftY) };
 	}
 
 	getCenter() {
 		let size = this.getSize();
-		return { "posX": (this.topLeftX + size.width / 2), "posY": (this.topLeftY + size.height / 2) };
+		return { posX: (this.topLeftX + size.width / 2), posY: (this.topLeftY + size.height / 2) };
 	}
 
 	intersects(other) {
@@ -356,7 +356,7 @@ class Mesh {
 		this.bbox = new BBox();
 	}
 
-	_updateTransform(trans){
+	_updateTransform(trans) {
 		this._updateBoundingBox(trans);
 	}
 
@@ -379,8 +379,8 @@ class Sprite extends Mesh {
 }
 
 class MultiSprite extends Mesh {
-	constructor(atlas){
-		super(1,1); 
+	constructor(atlas) {
+		super(1, 1);
 		this.atlas = atlas;
 		this.sprites = [];
 	}
@@ -390,10 +390,10 @@ class MultiSprite extends Mesh {
 		this.sprites.push(sprite);
 	}
 
-	_updateTransform(parentTrans){
+	_updateTransform(parentTrans) {
 		super._updateTransform(parentTrans);
-		
-		for(let sprite of this.sprites){
+
+		for (let sprite of this.sprites) {
 			sprite.trans._updateTransform(parentTrans);
 		}
 	}
@@ -414,7 +414,7 @@ class Trans {
 	}
 
 	_updateTransform(parentTrans) {
-		
+
 		if (parentTrans != null) {
 
 			this.absPosX = this.posX + parentTrans.absPosX;
@@ -427,7 +427,7 @@ class Trans {
 				let parentOffsetY = parentTrans.rotationOffsetY;
 				let ownerOffsetX = this.rotationOffsetX;
 				let ownerOffsetY = this.rotationOffsetY;
-	
+
 				let distX = (this.absPosX + ownerOffsetX - (parentTrans.absPosX + parentOffsetX));
 				let distY = (this.absPosY + ownerOffsetY - (parentTrans.absPosY + parentOffsetY));
 
@@ -475,7 +475,7 @@ class GameObject {
 	}
 
 	submitChanges(recursively = false) {
-		
+
 		this._addPendingGameObjects(!recursively);
 
 		// add game objects first 
@@ -685,10 +685,11 @@ class Msg {
 // Component that defines functional behavior of the game object (or its part)
 class Component {
 
-	constructor() {
+	constructor() { 
 		this.id = Component.idCounter++;
 		this.owner = null;
 		this.scene = null;
+		this.onFinished = null; // onFinished event
 	}
 
 	// called whenever the component is added to the scene
@@ -729,6 +730,10 @@ class Component {
 	// finishes this component
 	finish() {
 		this.owner.removeComponent(this);
+		
+		if(this.onFinished != null) {
+			this.onFinished(this); // call the event
+		}
 	}
 }
 
