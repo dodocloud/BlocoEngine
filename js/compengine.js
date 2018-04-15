@@ -87,8 +87,8 @@ class Scene {
 		return null;
 	}
 
-	findObjectBySecondaryId(id){
-		if(this.gameObjectSecIds.has(id)){
+	findObjectBySecondaryId(id) {
+		if (this.gameObjectSecIds.has(id)) {
 			return this.gameObjectSecIds.get(id);
 		}
 		return null;
@@ -135,7 +135,7 @@ class Scene {
 		// collection of all game objects, mapped by their ids
 		this.gameObjects = new Map();
 		// collection of all game object, mapped by their secondary ids
-		this.gameObjectSecIds = new Map();		
+		this.gameObjectSecIds = new Map();
 
 		// game objects sorted by z-index, used for drawing
 		this.sortedObjects = new Array();
@@ -388,11 +388,13 @@ class RectMesh extends Mesh {
 }
 
 class ImageMesh extends Mesh {
-	constructor(image, scene){
-		super(image.width/scene.unitSize, image.height/scene.unitSize);
+	constructor(image, scene) {
+		super(image.width, image.height);
 		this.image = image;
 	}
 }
+
+// TODO width and height should be always divided by unitSize, otherwise the bounding boxes won't work! 
 
 class SpriteMesh extends Mesh {
 	constructor(offsetX, offsetY, width, height, image) {
@@ -410,7 +412,7 @@ class MultiSprite extends SpriteMesh {
 		this.trans = trans;
 	}
 
-	_updateTransform(parentTrans){
+	_updateTransform(parentTrans) {
 		super._updateTransform(parentTrans);
 		this.trans._updateTransform(parentTrans);
 	}
@@ -424,7 +426,7 @@ class MultiSpriteCollection extends Mesh {
 	}
 
 	addSprite(sprite) {
-		if(!sprite instanceof MultiSprite) {
+		if (!sprite instanceof MultiSprite) {
 			throw Error("Sprite must be instance of MultiSprite class");
 		}
 
@@ -452,19 +454,19 @@ class MultiSpriteCollection extends Mesh {
 
 // transformation entity
 class Trans {
-	constructor(posX = 0, posY = 0, rotation = 0) {
-		this.posX = 0;
-		this.posY = 0;
-		this.rotation = 0;
-		this.rotationOffsetX = 0;
-		this.rotationOffsetY = 0;
+	constructor(posX = 0, posY = 0, rotation = 0, rotationOffsetX = 0, rotationOffsetY = 0) {
+		this.posX = posX;
+		this.posY = posY;
+		this.rotation = rotation;
+		this.rotationOffsetX = rotationOffsetX;
+		this.rotationOffsetY = rotationOffsetY;
 
 		this.absPosX = 0;
 		this.absPosY = 0;
 		this.absRotation = 0;
 	}
 
-	setPosition(posX, posY){
+	setPosition(posX, posY) {
 		this.posX = posX;
 		this.posY = posY;
 	}
@@ -558,16 +560,16 @@ class GameObject {
 		}
 	}
 
-	addState(state){
+	addState(state) {
 		this.state |= state;
 	}
 
-	hasState(state){
-		return (this.state & state) == state; 
+	hasState(state) {
+		return (this.state & state) == state;
 	}
 
-	removeState(state){
-		this.state &= (1 << state/2); // todo fix this
+	removeState(state) {
+		this.state &= (1 << state / 2); // todo fix this
 	}
 
 	hasFlag(flag) {
@@ -604,7 +606,7 @@ class GameObject {
 	}
 
 
-	addComponent(component, owner) {
+	addComponent(component) {
 		component.owner = this;
 		component.scene = this.scene;
 		this.componentsToAdd.push(component);
@@ -754,7 +756,7 @@ class Msg {
 // Component that defines functional behavior of the game object (or its part)
 class Component {
 
-	constructor() { 
+	constructor() {
 		this.id = Component.idCounter++;
 		this.owner = null;
 		this.scene = null;
@@ -799,8 +801,8 @@ class Component {
 	// finishes this component
 	finish() {
 		this.owner.removeComponent(this);
-		
-		if(this.onFinished != null) {
+
+		if (this.onFinished != null) {
 			this.onFinished(this); // call the event
 		}
 	}
