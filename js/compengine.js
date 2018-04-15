@@ -11,6 +11,9 @@ const STATE_UPDATABLE = 2 ^ 0;
 const STATE_DRAWABLE = 2 ^ 1;
 const STATE_LISTENING = 2 ^ 2;
 
+// unit size in px - all attributes are calculated against this size
+var UNIT_SIZE = 1;
+
 
 // Scene that keeps collection of all game
 // objects and calls draw and update upon them
@@ -51,11 +54,11 @@ class Scene {
 		});
 	}
 
-	addGlobalComponent(cmp){
+	addGlobalComponent(cmp) {
 		this.root.addComponent(cmp);
 	}
 
-	removeGlobalComponent(cmp){
+	removeGlobalComponent(cmp) {
 		this.root.removeComponent(cmp);
 	}
 
@@ -303,10 +306,12 @@ class Flags {
 	}
 
 	switchFlag(flag1, flag2) {
+		let hasFlag2 = this.hasFlag(flag2);
+
 		if (this.hasFlag(flag1)) this.setFlag(flag2);
 		else this.resetFlag(flag2);
 
-		if (this.hasFlag(flag2)) this.setFlag(flag1);
+		if (hasFlag2) this.setFlag(flag1);
 		else this.resetFlag(flag1);
 	}
 
@@ -319,11 +324,11 @@ class Flags {
 	}
 
 	_getFlagIndex(flag) {
-		return flag / 4; // sizeof 32bit int
+		return parseInt(flag / 32); // sizeof 32bit int
 	}
 
 	_getFlagOffset(flag) {
-		return flag % 4; // sizeof 32bit int
+		return flag % 32; // sizeof 32bit int
 	}
 
 	_changeFlag(set, flag) {
@@ -415,10 +420,26 @@ class Mesh {
 	}
 
 	_updateBoundingBox(trans) {
-		this.bbox.topLeftX = trans.posX;
-		this.bbox.topLeftY = trans.posY;
-		this.bbox.bottomRightX = trans.posX + this.width;
-		this.bbox.bottomRightY = trans.posY + this.height;
+		if (false && trans.absRotation != 0) {
+			// rotate 
+			let distX = (this.bbox.bottomRightX - (parentTrans.absPosX));
+			let distY = (this.bbox.bottomRightY - (parentTrans.absPosY));
+
+			let length = Math.sqrt(distX * distX + distY * distY);
+			let angle = parentTrans.absRotation + Math.atan2(distY, distX);
+			let rotPosX = length * Math.cos(angle);
+			let rotPosY = length * Math.sin(angle);
+			this.absPosX = parentTrans.absPosX + parentOffsetX + rotPosX - ownerOffsetX;
+			this.absPosY = parentTrans.absPosY + parentOffsetY + rotPosY - ownerOffsetY;
+
+			this.bbox.bottomRightX = trans.absPosX + this.width * Math.cos(trans.absRotation);
+			this.bbox.bottomRightY = trans.absPosY + this.height * Math.sin(trans.absRotation);
+		} else {
+			this.bbox.topLeftX = trans.absPosX;
+			this.bbox.topLeftY = trans.absPosY;
+			this.bbox.bottomRightX = trans.absPosX + this.width;
+			this.bbox.bottomRightY = trans.absPosY + this.height;
+		}
 	}
 }
 
@@ -431,12 +452,10 @@ class RectMesh extends Mesh {
 
 class ImageMesh extends Mesh {
 	constructor(image, scene) {
-		super(image.width, image.height);
+		super(image.width / UNIT_SIZE, image.height / UNIT_SIZE);
 		this.image = image;
 	}
 }
-
-// TODO width and height should be always divided by unitSize, otherwise the bounding boxes won't work! 
 
 class SpriteMesh extends Mesh {
 	constructor(offsetX, offsetY, width, height, image) {

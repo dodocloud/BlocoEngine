@@ -16,7 +16,7 @@ class DebugComponent extends Component {
 		var self = this;
 		
 		// todo draw method is replaced which is not a good approach
-	/*	this.scene.draw = () => {
+		this.scene.draw = () => {
 			for (let gameObject of self.scene.sortedObjects) {
 				gameObject.draw(self.scene.canvasCtx);
 			}
@@ -27,7 +27,7 @@ class DebugComponent extends Component {
 			self._drawBoundingBox(self.scene.canvasCtx, self.owner);
 			self.scene.canvasCtx.stroke();
 			self.scene.canvasCtx.strokeStyle = strokeStyle;
-		};*/
+		};
 
 	}
 
@@ -39,13 +39,15 @@ class DebugComponent extends Component {
 
 
 	_drawBoundingBox(ctx, node) {
+		if(node.tag.indexOf("bubble") != -1) return;
+		
 		let bb = node.mesh.bbox;
-		let posX = bb.topLeftX * this.scene.unitSize;
-		let posY = bb.topLeftY * this.scene.unitSize;
+		let posX = bb.topLeftX * UNIT_SIZE;
+		let posY = bb.topLeftY * UNIT_SIZE;
 		let size = bb.getSize();
 		
 		if(size.width != 0 && size.height != 0){
-			ctx.rect(posX, posY, size.width, size.height);
+			ctx.rect(posX, posY, size.width * UNIT_SIZE, size.height * UNIT_SIZE);
 		}
 
 		for(let [id, child] of node.children) {
@@ -109,15 +111,15 @@ class BasicRenderer extends Component {
 
 	_drawRectMesh(ctx, mesh) {
 		let trans = this.owner.trans;
-		let posX = trans.absPosX * this.scene.unitSize;
-		let posY = trans.absPosY * this.scene.unitSize;
-		let originX = trans.rotationOffsetX * this.scene.unitSize;
-		let originY = trans.rotationOffsetY * this.scene.unitSize;
+		let posX = trans.absPosX * UNIT_SIZE;
+		let posY = trans.absPosY * UNIT_SIZE;
+		let originX = trans.rotationOffsetX * UNIT_SIZE;
+		let originY = trans.rotationOffsetY * UNIT_SIZE;
 		ctx.translate(posX + originX, posY + originY);
 		ctx.rotate(trans.absRotation);
 		let fillStyle = ctx.fillStyle;
 		ctx.fillStyle = mesh.fillStyle;
-		ctx.fillRect(-originX, -originY, mesh.width * this.scene.unitSize, mesh.height * this.scene.unitSize);
+		ctx.fillRect(-originX, -originY, mesh.width * UNIT_SIZE, mesh.height * UNIT_SIZE);
 		ctx.fillStyle = fillStyle;
 		ctx.rotate(-trans.absRotation);
 		ctx.translate(-(posX + originX), -(posY + originY));
@@ -125,10 +127,10 @@ class BasicRenderer extends Component {
 
 	_drawImageMesh(ctx, mesh) {
 		let trans = this.owner.trans;
-		let posX = trans.absPosX * this.scene.unitSize;
-		let posY = trans.absPosY * this.scene.unitSize;
-		let originX = trans.rotationOffsetX * this.scene.unitSize;
-		let originY = trans.rotationOffsetY * this.scene.unitSize;
+		let posX = trans.absPosX * UNIT_SIZE;
+		let posY = trans.absPosY * UNIT_SIZE;
+		let originX = trans.rotationOffsetX * UNIT_SIZE;
+		let originY = trans.rotationOffsetY * UNIT_SIZE;
 		ctx.translate(posX + originX, posY + originY);
 		ctx.rotate(trans.absRotation);
 		ctx.drawImage(mesh.image, 0, 0, mesh.image.width, mesh.image.height, -originX, -originY, mesh.image.width, mesh.image.height);
@@ -137,14 +139,14 @@ class BasicRenderer extends Component {
 	}
 
 	_drawSpriteMesh(ctx, mesh, trans) {
-		let posX = trans.absPosX * this.scene.unitSize;
-		let posY = trans.absPosY * this.scene.unitSize;
-		let originX = trans.rotationOffsetX * this.scene.unitSize;
-		let originY = trans.rotationOffsetY * this.scene.unitSize;
+		let posX = trans.absPosX * UNIT_SIZE;
+		let posY = trans.absPosY * UNIT_SIZE;
+		let originX = trans.rotationOffsetX * UNIT_SIZE;
+		let originY = trans.rotationOffsetY * UNIT_SIZE;
 		ctx.translate(posX + originX, posY + originY);
 		ctx.rotate(trans.absRotation);
 		ctx.drawImage(mesh.image, mesh.offsetX, mesh.offsetY,
-			mesh.width, mesh.height, -originX, -originY, mesh.width, mesh.height);
+			mesh.width * UNIT_SIZE, mesh.height * UNIT_SIZE, -originX, -originY, mesh.width * UNIT_SIZE, mesh.height * UNIT_SIZE);
 		ctx.rotate(-trans.absRotation);
 		ctx.translate(-(posX + originX), -(posY + originY));
 	}
