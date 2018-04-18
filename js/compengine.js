@@ -194,6 +194,10 @@ class Scene {
 		}
 	}
 
+	sendmsg(action, data){
+		this._sendmsg(new Msg(action, null, null, data));
+	}
+
 	// sends message to all subscribers
 	_sendmsg(msg) {
 		if (this.subscribers.has(msg.action)) {
@@ -387,8 +391,8 @@ class BBox {
 		return { posX: (this.topLeftX + size.width / 2), posY: (this.topLeftY + size.height / 2) };
 	}
 
-	intersects(other) {
-		return this.horizontalIntersection(other) >= 0 && this.verticalIntersection(other) >= 0;
+	intersects(other, tolerance = 0) {
+		return this.horizontalIntersection(other) >= -tolerance && this.verticalIntersection(other) >= -tolerance;
 	}
 
 	horizontalIntersection(other) {
