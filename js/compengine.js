@@ -273,16 +273,22 @@ class Scene {
 		this._sendmsg(new Msg(MSG_OBJECT_REMOVED, null, obj));
 	}
 
+	_unsubscribeComponent(component, action){
+		if (this.subscribedMessages.has(component.id)) {
+			this.subscribers.get(action).delete(component.id);
+			let allMsgKeys = this.subscribedMessages.get(component.id);
+			// todo remove msg key from the array
+		}
+	}
 
 	_removeComponent(component) {
-		this.subscribedMessages.delete(component.id);
-
 		if (this.subscribedMessages.has(component.id)) {
 			let allMsgKeys = this.subscribedMessages.get(component.id);
 			for (let msgKey of allMsgKeys) {
 				this.subscribers.get(msgKey).delete(component.id);
 			}
 		}
+		this.subscribedMessages.delete(component.id);
 	}
 }
 
@@ -945,6 +951,8 @@ class Component {
          * @type {action}
          */
 		this.onFinished = null; // onFinished event
+
+		this.isFinished = false;
 	}
 
 	// called whenever the component is added to the scene
@@ -955,6 +963,10 @@ class Component {
 	// subscribes itself as a listener for action with given key
 	subscribe(action) {
 		this.scene._subscribeComponent(action, this);
+	}
+
+	unsubscribe(action){
+		this.scene._unsubscribeComponent(action, this);
 	}
 
 	// sends message to all subscribers
@@ -989,6 +1001,8 @@ class Component {
 		if (this.onFinished != null) {
 			this.onFinished(this); // call the event
 		}
+
+		this.isFinished = true;
 	}
 }
 
