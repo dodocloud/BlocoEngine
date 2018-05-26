@@ -340,62 +340,13 @@ const CMD_REMOVE_COMPONENT = 17;
 const CMD_REMOVE_GAME_OBJECT_BY_TAG = 18;
 const CMD_REMOVE_GAME_OBJECT = 19;
 
-class Queue {
-  constructor () {
-    this.first = null;
-    this.size = 0;
-  }
-
-  enqueue (key, param1, param2) {
-    var node = {
-      key,
-      param1,
-      param2,
-      next: null,
-    };
-
-    if (!this.first) {
-      this.first = node;
-    } else {
-      let n = this.first;
-      while (n.next) {
-        n = n.next;
-      }
-      n.next = node;
-    }
-    this.size += 1;
-  }
-
-  dequeue () {
-    if (this.size == 0) {
-      return null;
-    }
-
-    let temp = this.first;
-    this.first = this.first.next;
-    this.size -= 1;
-    return temp;
-  }
-
-  isEmpty () {
-    return this.size == 0;
-  }
-}
-
 class Stack {
   constructor () {
     this.top = null;
     this.size = 0;
   }
 
-  push (key, param1, param2) {
-    var node = {
-      key,
-      param1,
-      param2,
-      previous: null,
-    };
-
+  push (node) {
     node.previous = this.top;
     this.top = node;
     this.size += 1;
@@ -412,11 +363,41 @@ class Stack {
 class ExecutorComponent extends Component {
   constructor () {
     super ();
-    this.queue = new Queue ();
     this.scopeStack = new Stack ();
     this.current = null;
+    this.head = null;
+    this.tail = null;
     this.helpParam = null;
     this.helpParam2 = null;
+  }
+
+  _enqueue (key, param1, param2) {
+    var node = {
+      key,
+      param1,
+      param2,
+      next: null,
+    };
+
+    if (this.head == null) {
+      this.head = this.tail = node;
+    } else {
+      this.tail.next = node;
+      this.tail = node;
+	}
+	
+	if(this.current == null){
+		this.current = this.head;
+	}
+  }
+
+  _dequeue () {
+    if (this.current == null || this.current.next == null) {
+      return null;
+    } else {
+      this.current = this.current.next;
+    }
+    return this.current;
   }
 
   onmessage (msg) {
@@ -424,57 +405,75 @@ class ExecutorComponent extends Component {
   }
 
   _gotoNext () {
-    this.current = this.queue.dequeue ();
+    this.current = this.current.next;
   }
 
-  _gotoNextAndRepeat (delta, absolute) {
+  _gotoNextImmediately (delta, absolute) {
     this._gotoNext ();
     this.update (delta, absolute);
   }
 
   update (delta, absolute) {
-    if (this.queue.isEmpty ()) {
-      this.finish ();
-    }
 
     if (this.current == null) {
-      this.current = this.queue.dequeue ();
-    }
+      this.current = this._dequeue ();
+	}
+	
+	if(this.current == null){
+		this.finish();
+		return;
+	}
 
     switch (this.current.key) {
       case CMD_BEGIN_REPEAT:
         console.log ('CMD_BEGIN_REPEAT');
-        if (this.current.param1-- >= 0) {
-		  this.scopeStack.push (this.current);
-        }
-        this._gotoNextAndRepeat (delta, absolute);
+        this.scopeStack.push (this.current);
+        this._gotoNextImmediately (delta, absolute);
         break;
       case CMD_END_REPEAT:
         console.log ('CMD_END_REPEAT');
-		this.current = this.scopeStack.pop ();
-        this.update (delta, absolute);
+        let temp = this.scopeStack.pop ();
+
+        if (--temp.param1 > 0) {
+          this.current = temp;
+          this.update (delta, absolute);
+        } else {
+          this._gotoNextImmediately ();
+        }
+
         break;
       case CMD_EXECUTE:
         console.log ('CMD_EXECUTE');
         this.current.param1 (this);
-        this._gotoNextAndRepeat ();
+        this._gotoNextImmediately ();
         break;
       case CMD_BEGIN_WHILE:
         console.log ('CMD_BEGIN_WHILE');
-        if (this.current.param1 ()) {
-          this.scopeStack.push (this.current);
-        }
-        this._gotoNextAndRepeat ();
+        this.scopeStack.push (this.current);
+        this._gotoNextImmediately ();
         break;
       case CMD_END_WHILE:
         console.log ('CMD_END_WHILE');
-        this.current = this.scopeStack.pop ();
-        this.update (delta, absolute);
+        let temp2 = this.scopeStack.pop ();
+
+        if (temp2.param1 ()) {
+          this.current = temp2;
+          this.update (delta, absolute);
+        } else {
+          this._gotoNextImmediately ();
+        }
+
         break;
       case CMD_BEGIN_INTERVAL:
-        console.log ('CMD_BEGIN_INTERVAL');
-        this.scopeStack.push (this.current);
-        this._gotoNextAndRepeat ();
+		console.log ('CMD_BEGIN_INTERVAL');
+		if (this.helpParam == null) {
+			this.helpParam = absolute;
+		  } else if (absolute - this.helpParam >= this.current.param1) {
+			this.helpParam = null;
+			this.scopeStack.push (this.current);
+        this._gotoNextImmediately ();
+		  }
+
         break;
       case CMD_END_INTERVAL:
         console.log ('CMD_END_INTERVAL');
@@ -484,12 +483,12 @@ class ExecutorComponent extends Component {
       case CMD_BEGIN_IF:
         console.log ('CMD_BEGIN_IF');
         if (this.current.param1 ()) {
-          this._gotoNextAndRepeat ();
+          this._gotoNextImmediately ();
           break;
         }
 
         while (true) {
-          this.current = this.queue.dequeue ();
+          this.current = this._dequeue ();
           if (this.current.key == CMD_ELSE || this.current.key == CMD_END_IF) {
             this._gotoNext ();
             break;
@@ -500,7 +499,7 @@ class ExecutorComponent extends Component {
       case CMD_ELSE:
         console.log ('CMD_ELSE');
         while (true) {
-          this.current = this.queue.dequeue ();
+          this.current = this._dequeue ();
           if (this.current.key == CMD_END_IF) {
             this._gotoNext ();
             break;
@@ -510,7 +509,7 @@ class ExecutorComponent extends Component {
         break;
       case CMD_END_IF:
         console.log ('CMD_END_IF');
-        this._gotoNextAndRepeat ();
+        this._gotoNextImmediately ();
         break;
       case CMD_WAIT_TIME:
         console.log ('CMD_WAIT_TIME');
@@ -518,13 +517,13 @@ class ExecutorComponent extends Component {
           this.helpParam = absolute;
         } else if (absolute - this.helpParam >= this.current.param1) {
           this.helpParam = null;
-          this._gotoNextAndRepeat ();
+          this._gotoNextImmediately ();
         }
         break;
       case CMD_ADD_COMPONENT:
         console.log ('CMD_ADD_COMPONENT');
         this.current.param1.addComponent (this.current.param2);
-        this._gotoNextAndRepeat ();
+        this._gotoNextImmediately ();
         break;
       case CMD_WAIT_FOR_FINISH:
         console.log ('CMD_WAIT_FOR_FINISH');
@@ -553,7 +552,7 @@ class ExecutorComponent extends Component {
           if (this.helpParam2 == this.current.param1) {
             this.unsubscribe (this.current.param1);
             this.helpParam = this.helpParam2 = null;
-            this._gotoNextAndRepeat ();
+            this._gotoNextImmediately ();
           }
         } else {
           this.helpParam = true;
@@ -564,7 +563,7 @@ class ExecutorComponent extends Component {
       case CMD_REMOVE_COMPONENT:
         console.log ('CMD_REMOVE_COMPONENT');
         this.current.param1.removeComponentByName (this.current.param2);
-        this._gotoNextAndRepeat ();
+        this._gotoNextImmediately ();
         break;
       case CMD_REMOVE_GAME_OBJECT_BY_TAG:
         console.log ('CMD_REMOVE_GAME_OBJECT_BY_TAG');
@@ -572,127 +571,127 @@ class ExecutorComponent extends Component {
         if (obj != null) {
           obj.remove ();
         }
-        this._gotoNextAndRepeat ();
+        this._gotoNextImmediately ();
         break;
       case CMD_REMOVE_GAME_OBJECT:
         console.log ('CMD_REMOVE_GAME_OBJECT');
         this.current.param1.remove ();
-        this._gotoNextAndRepeat ();
+        this._gotoNextImmediately ();
         break;
     }
   }
 
   beginRepeat (num) {
     console.log ('beginRepeat');
-    this.queue.enqueue (CMD_BEGIN_REPEAT, num);
+    this._enqueue (CMD_BEGIN_REPEAT, num);
     return this;
   }
 
   execute (func) {
     console.log ('execute');
-    this.queue.enqueue (CMD_EXECUTE, func);
+    this._enqueue (CMD_EXECUTE, func);
     return this;
   }
 
   endRepeat () {
     console.log ('endRepeat');
-    this.queue.enqueue (CMD_END_REPEAT);
+    this._enqueue (CMD_END_REPEAT);
     return this;
   }
 
   beginWhile (func) {
     console.log ('beginWhile');
-    this.queue.enqueue (CMD_BEGIN_WHILE, func);
+    this._enqueue (CMD_BEGIN_WHILE, func);
     return this;
   }
 
   endWhile () {
     console.log ('endWhile');
-    this.queue.enqueue (CMD_END_WHILE);
+    this._enqueue (CMD_END_WHILE);
     return this;
   }
 
   beginInterval (num) {
     console.log ('beginInterval');
-    this.queue.enqueue (CMD_BEGIN_INTERVAL, num);
+    this._enqueue (CMD_BEGIN_INTERVAL, num);
     return this;
   }
 
   endInterval () {
     console.log ('endInterval');
-    this.queue.enqueue (CMD_END_INTERVAL);
+    this._enqueue (CMD_END_INTERVAL);
     return this;
   }
 
   beginIf (func) {
     console.log ('beginIf');
-    this.queue.enqueue (CMD_BEGIN_IF, func);
+    this._enqueue (CMD_BEGIN_IF, func);
     return this;
   }
 
   else () {
     console.log ('else');
-    this.queue.enqueue (CMD_ELSE);
+    this._enqueue (CMD_ELSE);
     return this;
   }
 
   endIf () {
     console.log ('endIf');
-    this.queue.enqueue (CMD_END_IF);
+    this._enqueue (CMD_END_IF);
     return this;
   }
 
   waitTime (time) {
     console.log ('waitTime');
-    this.queue.enqueue (CMD_WAIT_TIME, time);
+    this._enqueue (CMD_WAIT_TIME, time);
     return this;
   }
 
   addComponent (gameObj, component) {
     console.log ('addComponent');
-    this.queue.enqueue (CMD_ADD_COMPONENT, gameObj, component);
+    this._enqueue (CMD_ADD_COMPONENT, gameObj, component);
     return this;
   }
 
   waitForFinish (component) {
     console.log ('waitForFinish');
-    this.queue.enqueue (CMD_WAIT_FOR_FINISH, component);
+    this._enqueue (CMD_WAIT_FOR_FINISH, component);
     return this;
   }
 
   waitUntil (func) {
     console.log ('waitUntil');
-    this.queue.enqueue (CMD_WAIT_UNTIL, func);
+    this._enqueue (CMD_WAIT_UNTIL, func);
     return this;
   }
 
   waitFrames (num) {
     console.log ('waitFrames');
-    this.queue.enqueue (CMD_WAIT_FRAMES, num);
+    this._enqueue (CMD_WAIT_FRAMES, num);
     return this;
   }
 
   waitForMessage (msg) {
     console.log ('waitForMessage');
-    this.queue.enqueue (CMD_WAIT_FOR_MESSAGE, msg);
+    this._enqueue (CMD_WAIT_FOR_MESSAGE, msg);
     return this;
   }
 
   removeComponent (gameObj, cmp) {
     console.log ('removeComponent');
-    this.queue.enqueue (CMD_REMOVE_COMPONENT, gameObj, cmp);
+    this._enqueue (CMD_REMOVE_COMPONENT, gameObj, cmp);
     return this;
   }
 
   removeGameObjectByTag (tag) {
     console.log ('removeGameObjectByTag');
-    this.queue.enqueue (CMD_REMOVE_GAME_OBJECT_BY_TAG, tag);
+    this._enqueue (CMD_REMOVE_GAME_OBJECT_BY_TAG, tag);
     return this;
   }
 
   removeGameObject (obj) {
     console.log ('removeGameObject');
-    this.queue.enqueue (CMD_REMOVE_GAME_OBJECT, obj);
+    this._enqueue (CMD_REMOVE_GAME_OBJECT, obj);
     return this;
   }
 }
