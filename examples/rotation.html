@@ -52,7 +52,23 @@
 
 			let executor = new ExecutorComponent()
 				.waitTime(3) // execute with a delay
-			//	.beginIf(() => true) TODO if, else, inner if, inner else and so
+				.beginRepeat(2)
+				
+				.beginIf(() => true)
+					.execute(() => console.log("IF"))
+					.beginIf(() => false)
+						.execute(() => console.log("BUG"))
+					.endIf()
+					.beginIf(() => false)
+						.execute(() => console.log("BUG"))
+					.else()
+						.execute(() => console.log("GOOD"))
+					.endIf()
+				.else()
+					.execute(() => console.log("BUG"))
+				.endIf()
+				
+				.endRepeat()
 				.beginRepeat(2)
 				.execute(() => { console.log("REP"); })
 				.endRepeat()

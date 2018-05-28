@@ -384,11 +384,11 @@ class ExecutorComponent extends Component {
     } else {
       this.tail.next = node;
       this.tail = node;
-	}
-	
-	if(this.current == null){
-		this.current = this.head;
-	}
+    }
+
+    if (this.current == null) {
+      this.current = this.head;
+    }
   }
 
   _dequeue () {
@@ -414,15 +414,14 @@ class ExecutorComponent extends Component {
   }
 
   update (delta, absolute) {
-
     if (this.current == null) {
       this.current = this._dequeue ();
-	}
-	
-	if(this.current == null){
-		this.finish();
-		return;
-	}
+    }
+
+    if (this.current == null) {
+      this.finish ();
+      return;
+    }
 
     switch (this.current.key) {
       case CMD_BEGIN_REPEAT:
@@ -465,15 +464,14 @@ class ExecutorComponent extends Component {
 
         break;
       case CMD_BEGIN_INTERVAL:
-		console.log ('CMD_BEGIN_INTERVAL');
-		if (this.helpParam == null) {
-			this.helpParam = absolute;
-		  } else if (absolute - this.helpParam >= this.current.param1) {
-			this.helpParam = null;
-			this.scopeStack.push (this.current);
-        this._gotoNextImmediately ();
-		  }
-
+        console.log ('CMD_BEGIN_INTERVAL');
+        if (this.helpParam == null) {
+          this.helpParam = absolute;
+        } else if (absolute - this.helpParam >= this.current.param1) {
+          this.helpParam = null;
+          this.scopeStack.push (this.current);
+          this._gotoNextImmediately ();
+        }
         break;
       case CMD_END_INTERVAL:
         console.log ('CMD_END_INTERVAL');
@@ -487,6 +485,7 @@ class ExecutorComponent extends Component {
           break;
         }
 
+        // todo this should go to the next ELSE of THIS particular scope!
         while (true) {
           this.current = this._dequeue ();
           if (this.current.key == CMD_ELSE || this.current.key == CMD_END_IF) {
