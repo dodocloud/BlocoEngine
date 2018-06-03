@@ -47,58 +47,6 @@
 			rect2.addComponent(new BasicRenderer());
 			rect2.addComponent(new RotationAnim());
 			scene.addGlobalGameObject(rect2);
-
-			let rot = new RotationAnim();
-
-			let executor = new ExecutorComponent()
-				.waitTime(3) // execute with a delay				
-				.beginIf(() => true)
-					.execute(() => console.log("1"))
-					.beginIf(() => false)
-						.execute(() => console.log("!!!!! 1 BUG"))
-					.endIf()
-					.beginIf(() => false)
-						.execute(() => console.log("!!!!! 2 BUG"))
-						.beginIf(() => false)
-							.execute(() => console.log("!!!!! 3 BUG"))
-						.else()
-							.execute(() => console.log("!!!!! 4 BUG"))
-						.endIf()
-					.else()
-						.execute(() => console.log("2"))
-						.beginRepeat(2)
-							.beginRepeat(2)
-								.execute((cmp) => console.log("REP " +cmp.helpParam))
-							.endRepeat()
-						.endRepeat()
-					.endIf()
-				.else()
-					.execute(() => console.log("!!!!! 5 BUG"))
-				.endIf()
-				.beginRepeat(2)
-					.execute(() => { console.log("REP PODRUHE"); })
-				.endRepeat()
-				.beginWhile(() => Math.random() > 0.9)
-					.execute(() => {  console.log("WHILE")})
-				.endWhile()
-			//	.beginInterval(2)
-			//	.execute(() => { console.log("interval")})
-			//	.endInterval()	
-				.addComponent(rect2, rot)
-				.waitTime(2)
-				.execute(() => rot.finish())
-				.waitForFinish(rot)
-				.waitUntil(() => {
-					return Math.random() > 0.9;
-				})
-				.waitFrames(10)
-				.execute((cmp) => cmp.scene.addPendingInvocation(2, () => cmp.sendmsg("MOJO")))
-				.waitForMessage("MOJO")
-				.execute(cmp => {
-					cmp.finish();
-				});
-
-			rect2.addComponent(executor);
 		}
 
 		class RotationAnim extends Component {
@@ -137,7 +85,5 @@
 			}
 		}
 	</script>
-
 </body>
-
 </html>
