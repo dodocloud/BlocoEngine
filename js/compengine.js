@@ -5,6 +5,7 @@
 
 const MSG_OBJECT_ADDED = 1;
 const MSG_OBJECT_REMOVED = 2;
+const MSG_ALL = 3;  // special message for global subscribers, usually for debugging
 
 const STATE_INACTIVE = 0;
 const STATE_UPDATABLE = 2 ^ 0;
@@ -37,15 +38,43 @@ class Scene {
          */
 		this.canvasCtx = canvas.getContext('2d');
 
+		/**
+         * Function is called before update
+         * @type {(number, number) => {}}
+         */
+		this.beforeUpdate = null;
+		/**
+         * Function is called after update
+         * @type {(number, number) => {}}
+         */
+		this.afterUpdate = null;
+		/**
+         * Function is called before draw
+         * @type {() => {}}
+         */
+		this.beforeDraw = null;
+		/**
+         * Function is called after draw
+         * @type {() => {}}
+         */
+		this.afterDraw = null;
+
 		this.clearScene();
 	}
 
+	/**
+	 * Submits changes and applies added or removed objects components
+	 */
 	submitChanges() {
 		// submit upon the root recursively
 		this.root.submitChanges(true);
 	}
 
-	// stores a new function that should be invoked after given amount of time
+	/**
+	 * Adds a new function that will be invoked after given amount of time
+	 * @param {number} delay delay in seconds 
+	 * @param {action} action () => {} a function pointer with no arguments
+	 */
 	addPendingInvocation(delay, action) {
 		this.pendingInvocations.push({
 			delay: delay,
@@ -85,7 +114,11 @@ class Scene {
 		this.root.removeAttribute(key);
 	}
 
-	// finds all game objects by their tag
+	/**
+	 * Finds all game objects by their tag
+	 * @param {String} tag tag of the object
+	 * @returns {Array<GameObject>} 
+	 */
 	findAllObjectsByTag(tag) {
 		let result = new Array();
 		if (this.gameObjectTags.has(tag)) {
@@ -149,6 +182,8 @@ class Scene {
 
 		this.root = new GameObject("root");
 		this.root.scene = this;
+		this.root.mesh.width = this.canvas.width / UNIT_SIZE;
+		this.root.mesh.height = this.canvas.height / UNIT_SIZE;
 
 		// message action keys and all subscribers that listens to all these actions
 		this.subscribers = new Map();
@@ -168,8 +203,28 @@ class Scene {
 		this.pendingInvocations = new Array();
 	}
 
+	getWidth() {
+		return this.root.mesh.width;
+	}
+
+	setWidth(width) {
+		this.root.mesh.width = width;
+	}
+
+	getHeight() {
+		return this.root.mesh.height;
+	}
+
+	setHeight(height) {
+		this.root.mesh.height = height;
+	}
+
 	// executes the update cycle
 	update(delta, absolute) {
+		if (this.beforeUpdate != null) {
+			this.beforeUpdate(delta, absolute);
+		}
+
 		// update
 		this.root.update(delta, absolute);
 		this.submitChanges(false);
@@ -185,16 +240,33 @@ class Scene {
 				this.pendingInvocations.splice(i, 1);
 			}
 		}
+
+		if (this.afterUpdate != null) {
+			this.afterUpdate(delta, absolute);
+		}
 	}
 
 	// executes the draw cycle
 	draw() {
+		if (this.beforeDraw != null) {
+			this.beforeDraw();
+		}
+
 		for (let gameObject of this.sortedObjects) {
 			gameObject.draw(this.canvasCtx);
 		}
+
+		if (this.afterDraw != null) {
+			this.afterDraw();
+		}
 	}
 
-	sendmsg(action, data){
+	/**
+	 * Finds a first object with a given tag
+	 * @param {string|number} action action key 
+	 * @param {data} data any data 
+	 */
+	sendmsg(action, data) {
 		this._sendmsg(new Msg(action, null, null, data));
 	}
 
@@ -205,13 +277,20 @@ class Scene {
 			let subscribedComponents = this.subscribers.get(msg.action);
 			for (let [key, component] of subscribedComponents) {
 				// send message
-				if (component.owner.state & STATE_LISTENING == STATE_LISTENING) {
+				if (component.owner.hasState(STATE_LISTENING)) {
+					component.onmessage(msg);
+				}
+			}
+		}
+		if (this.subscribers.has(MSG_ALL)) {
+			let globalSubs = this.subscribers.get(MSG_ALL);
+			for (let [key, component] of globalSubs) {
+				if (component.owner.hasState(STATE_LISTENING)) {
 					component.onmessage(msg);
 				}
 			}
 		}
 	}
-
 
 	// subscribes given component for messaging system
 	_subscribeComponent(msgKey, component) {
@@ -273,22 +352,16 @@ class Scene {
 		this._sendmsg(new Msg(MSG_OBJECT_REMOVED, null, obj));
 	}
 
-	_unsubscribeComponent(component, action){
-		if (this.subscribedMessages.has(component.id)) {
-			this.subscribers.get(action).delete(component.id);
-			let allMsgKeys = this.subscribedMessages.get(component.id);
-			// todo remove msg key from the array
-		}
-	}
 
 	_removeComponent(component) {
+		this.subscribedMessages.delete(component.id);
+
 		if (this.subscribedMessages.has(component.id)) {
 			let allMsgKeys = this.subscribedMessages.get(component.id);
 			for (let msgKey of allMsgKeys) {
 				this.subscribers.get(msgKey).delete(component.id);
 			}
 		}
-		this.subscribedMessages.delete(component.id);
 	}
 }
 
@@ -363,29 +436,29 @@ class Flags {
 	}
 }
 
-// simple bounding box
+// Bounding box
 class BBox {
-	constructor() {
+	constructor(topLeftX = 0, topLeftY = 0, bottomRightX = 0, bottomRightY = 0) {
 		/**
          * TopLeft absolute coordinate on X axis
          * @type {number}
          */
-		this.topLeftX = 0;
+		this.topLeftX = topLeftX;
 		/**
          * TopLeft absolute coordinate on Y axis
          * @type {number}
          */
-		this.topLeftY = 0;
+		this.topLeftY = topLeftY;
 		/**
          * BottomRight coordinate on X axis
          * @type {number}
          */
-		this.bottomRightX = 0;
+		this.bottomRightX = bottomRightX;
 		/**
          * BottomRight coordinate on Y axis
          * @type {number}
          */
-		this.bottomRightY = 0;
+		this.bottomRightY = bottomRightY;
 	}
 
 	getSize() {
@@ -406,12 +479,49 @@ class BBox {
 	}
 
 	verticalIntersection(other) {
-		return Math.min(other.bottomLeftY, this.bottomLeftY) - Math.max(other.topLeftY, this.topLeftY);
+		return Math.min(other.bottomRightY, this.bottomRightY) - Math.max(other.topLeftY, this.topLeftY);
+	}
+
+	update(trans, mesh) {
+		if (trans.absRotation != 0) {
+			let boxWidth = mesh.width * Math.abs(Math.cos(trans.absRotation)) + mesh.height * Math.abs(Math.sin(trans.absRotation));
+			let boxHeight = mesh.height * Math.abs(Math.cos(trans.absRotation)) + mesh.width * Math.abs(Math.sin(trans.absRotation));
+
+			let parentTrans = trans;
+
+			let absPosX = parentTrans.absPosX - parentTrans.rotationOffsetX + mesh.width / 2;
+			let absPosY = parentTrans.absPosY - parentTrans.rotationOffsetY + mesh.height / 2;
+			let distX = (absPosX - parentTrans.absPosX);
+			let distY = (absPosY - parentTrans.absPosY);
+			let length = Math.sqrt(distX * distX + distY * distY);
+
+			let angle = parentTrans.absRotation + Math.atan2(distY, distX);
+			let rotPosX = length * Math.cos(angle);
+			let rotPosY = length * Math.sin(angle);
+
+			absPosX = parentTrans.absPosX + rotPosX;
+			absPosY = parentTrans.absPosY + rotPosY;
+
+			this.topLeftX = absPosX - boxWidth / 2;
+			this.topLeftY = absPosY - boxHeight / 2;
+			this.bottomRightX = this.topLeftX + boxWidth;
+			this.bottomRightY = this.topLeftY + boxHeight;
+		} else {
+			this.topLeftX = trans.absPosX - trans.rotationOffsetX;
+			this.topLeftY = trans.absPosY - trans.rotationOffsetY;
+			this.bottomRightX = this.topLeftX + mesh.width;
+			this.bottomRightY = this.topLeftY + mesh.height;
+		}
 	}
 }
 
 class Mesh {
 	constructor(width, height) {
+		/**
+         * Alpha value 
+         * @type {number}
+         */
+		this.alpha = 1.0;
 		/**
          * Relative width of the mesh 
          * @type {number}
@@ -422,60 +532,57 @@ class Mesh {
          * @type {number}
          */
 		this.height = height;
-		/**
-         * Bounding box
-         * @type {BBox}
-         */
-		this.bbox = new BBox();
 	}
 
 	_updateTransform(trans) {
-		this._updateBoundingBox(trans);
-	}
-
-	_updateBoundingBox(trans) {
-		if (trans.absRotation != 0) {
-			let boxWidth = this.width * Math.abs(Math.cos(trans.absRotation)) + this.height * Math.abs(Math.sin(trans.absRotation));
-			let boxHeight = this.height * Math.abs(Math.cos(trans.absRotation)) + this.width * Math.abs(Math.sin(trans.absRotation));
-
-			let parentTrans = trans;
-
-			let absPosX = parentTrans.absPosX - parentTrans.rotationOffsetX + this.width/2;
-			let absPosY = parentTrans.absPosY - parentTrans.rotationOffsetY + this.height/2;
-			let distX = (absPosX  - parentTrans.absPosX);
-			let distY = (absPosY  - parentTrans.absPosY);
-			let length = Math.sqrt(distX * distX + distY * distY);
-			
-			let angle = parentTrans.absRotation + Math.atan2(distY, distX);
-			let rotPosX = length * Math.cos(angle);
-			let rotPosY = length * Math.sin(angle);
-
-			absPosX = parentTrans.absPosX + rotPosX;
-			absPosY = parentTrans.absPosY + rotPosY;
-
-			this.bbox.topLeftX = absPosX - boxWidth/2;
-			this.bbox.topLeftY = absPosY - boxHeight/2;
-			this.bbox.bottomRightX = this.bbox.topLeftX + boxWidth;
-			this.bbox.bottomRightY = this.bbox.topLeftY + boxHeight;
-		} else {
-			this.bbox.topLeftX = trans.absPosX - trans.rotationOffsetX;
-			this.bbox.topLeftY = trans.absPosY - trans.rotationOffsetY;
-			this.bbox.bottomRightX = this.bbox.topLeftX + this.width;
-			this.bbox.bottomRightY = this.bbox.topLeftY + this.height;
-		}
+		// override where necessary
 	}
 }
 
 class RectMesh extends Mesh {
 	constructor(fillStyle, width, height) {
 		super(width, height);
+		/**
+         * HTML5-Canvas fillstyle
+         * @type {string}
+         */
 		this.fillStyle = fillStyle;
 	}
 }
 
+class TextMesh extends Mesh {
+	constructor(text = "", font = "24px Verdana", fillStyle, width, height) {
+		super(width, height);
+		/**
+         * HTML5-Canvas fillstyle
+         * @type {string}
+         */
+		this.fillStyle = fillStyle;
+		/**
+         * HTML5-Canvas font
+         * @type {string}
+         */
+		this.font = font;
+		/**
+         * Text content
+         * @type {string}
+         */
+		this.text = text;
+		/**
+         * Text alignment
+         * @type {string}
+         */
+		this.textAlign = "left";
+	}
+}
+
 class ImageMesh extends Mesh {
-	constructor(image, scene) {
+	constructor(image) {
 		super(image.width / UNIT_SIZE, image.height / UNIT_SIZE);
+		/**
+         * Texture mage
+         * @type {HTML5ImageElement}
+         */
 		this.image = image;
 	}
 }
@@ -483,8 +590,21 @@ class ImageMesh extends Mesh {
 class SpriteMesh extends Mesh {
 	constructor(offsetX, offsetY, width, height, image) {
 		super(width, height);
+
+		/**
+         * X axis offset of the sprite in the texture in PX
+         * @type {number}
+         */
 		this.offsetX = offsetX;
+		/**
+         * Y axis offset of the sprite in the texture in PX
+         * @type {number}
+         */
 		this.offsetY = offsetY;
+		/**
+         * Sprite mage
+         * @type {HTML5ImageElement}
+         */
 		this.image = image;
 	}
 }
@@ -492,7 +612,15 @@ class SpriteMesh extends Mesh {
 class MultiSprite extends SpriteMesh {
 	constructor(id, trans, offsetX, offsetY, width, height, image) {
 		super(offsetX, offsetY, width, height, image);
+		/**
+         * Identifier
+         * @type {number}
+         */
 		this.id = id;
+		/**
+         * Transformation entity
+         * @type {Trans}
+         */
 		this.trans = trans;
 	}
 
@@ -505,7 +633,15 @@ class MultiSprite extends SpriteMesh {
 class MultiSpriteCollection extends Mesh {
 	constructor(atlas) {
 		super(1, 1);
+		/**
+         * Sprite atlas
+         * @type {HTML5ImageElement}
+         */
 		this.atlas = atlas;
+		/**
+         * Collection of sprites
+         * @type {Map<number, MultiSprite>}
+         */
 		this.sprites = new Map();
 	}
 
@@ -517,6 +653,7 @@ class MultiSpriteCollection extends Mesh {
 		this.sprites.set(sprite.id, sprite);
 	}
 
+	/* TODO bbox was moved to the GameObject!!
 	_updateTransform(parentTrans) {
 		super._updateTransform(parentTrans);
 
@@ -532,9 +669,9 @@ class MultiSpriteCollection extends Mesh {
 		let size = this.bbox.getSize().width;
 		this.width = size.width;
 		this.height = size.height;
-
-	}
+	}*/
 }
+
 
 // transformation entity
 class Trans {
@@ -580,6 +717,9 @@ class Trans {
          * @type {number}
          */
 		this.absRotation = 0;
+
+		this.pendingAbsPosX = null;
+		this.pendingAbsPosY = null;
 	}
 
 	setPosition(posX, posY) {
@@ -587,31 +727,67 @@ class Trans {
 		this.posY = posY;
 	}
 
+	changeRotationOffset(rotOffsetX, rotOffsetY) {
+		// TODO this works only when rotation is 0 !
+		let deltaX = this.rotationOffsetX - rotOffsetX;
+		let deltaY = this.rotationOffsetY - rotOffsetY;
+		this.posX -= deltaX;
+		this.posY -= deltaY;
+		this.rotationOffsetX = rotOffsetX;
+		this.rotationOffsetY = rotOffsetY;
+	}
+
+	clone() {
+		let copy = new Trans(this.posX, this.posY, this.rotation, this.rotationOffsetX, this.rotationOffsetY);
+		return copy;
+	}
+
+	/* TODO work in progress
+	setAbsPosition(posX, posY) {
+		this.pendingAbsPosX = posX;
+		this.pendingAbsPosY = posY;
+	}*/
+
 	_updateTransform(parentTrans) {
 
-		if (parentTrans != null) {
-
-			this.absPosX = this.posX + parentTrans.absPosX;
-			this.absPosY = this.posY + parentTrans.absPosY;
-			this.absRotation = this.rotation + parentTrans.absRotation;
-
-			if (parentTrans.absRotation != 0) {
-
-				let distX = (this.absPosX - (parentTrans.absPosX));
-				let distY = (this.absPosY - (parentTrans.absPosY));
-
-				let length = Math.sqrt(distX * distX + distY * distY);
-				// always use atan2 if you don't want to deal with cos/sin freaking signs
-				let angle = parentTrans.absRotation + Math.atan2(distY, distX);
-				let rotPosX = length * Math.cos(angle);
-				let rotPosY = length * Math.sin(angle);
-				this.absPosX = parentTrans.absPosX + rotPosX;
-				this.absPosY = parentTrans.absPosY + rotPosY;
+		if (this.pendingAbsPosX != null && this.pendingAbsPosY != null) {
+			// calculate local position from absolute position
+			this.absPosX = this.pendingAbsPosX;
+			this.absPosY = this.pendingAbsPosY;
+			if (parentTrans != null) {
+				// TODO!! Abs-to-loc transformations
+			} else {
+				this.posX = this.absPosX;
+				this.posY = this.absPosY;
+				this.absRotation = this.rotation;
 			}
+			this.pendingAbsPosX = null;
+			this.pendingAbsPosY = null;
 		} else {
-			this.absPosX = this.posX;
-			this.absPosY = this.posY;
-			this.absRotation = this.rotation;
+			if (parentTrans != null) {
+
+				this.absPosX = this.posX + parentTrans.absPosX;
+				this.absPosY = this.posY + parentTrans.absPosY;
+				this.absRotation = this.rotation + parentTrans.absRotation;
+
+				if (parentTrans.absRotation != 0) {
+
+					let distX = (this.absPosX - (parentTrans.absPosX));
+					let distY = (this.absPosY - (parentTrans.absPosY));
+
+					let length = Math.sqrt(distX * distX + distY * distY);
+					// always use atan2 if you don't want to deal with cos/sin freaking signs
+					let angle = parentTrans.absRotation + Math.atan2(distY, distX);
+					let rotPosX = length * Math.cos(angle);
+					let rotPosY = length * Math.sin(angle);
+					this.absPosX = parentTrans.absPosX + rotPosX;
+					this.absPosY = parentTrans.absPosY + rotPosY;
+				}
+			} else {
+				this.absPosX = this.posX;
+				this.absPosY = this.posY;
+				this.absRotation = this.rotation;
+			}
 		}
 	}
 }
@@ -659,6 +835,11 @@ class GameObject {
          */
 		this.mesh = new Mesh(0, 0);
 		/**
+         * Bounding box
+         * @type {BBox}
+         */
+		this.bbox = new BBox();
+		/**
          * Game scene
          * @type {Scene}
          */
@@ -679,19 +860,27 @@ class GameObject {
          */
 		this.attributes = new Map();
 
+		/**
+         * Collection of children
+         * @type {Map<number, GameObject>}
+         */
+		this.children = new Map();
+
 		// temporary collection that keeps objects for removal -> objects should be removed
 		// at the end of the update cycle since we are sure there aren't any running components
-		this.objectsToRemove = new Array();
-		this.componentsToRemove = new Array();
+		this._objectsToRemove = new Array();
+		this._componentsToRemove = new Array();
 		// temporary collection that keeps objects for adding -> objects should be added
 		// at the end of the update cycle since we are sure there aren't any running components
-		this.objectsToAdd = new Array();
-		this.componentsToAdd = new Array();
-
-		this.children = new Map();
+		this._objectsToAdd = new Array();
+		this._componentsToAdd = new Array();
 	}
 
 	submitChanges(recursively = false) {
+
+		this.trans._updateTransform(this.parent == null ? null : this.parent.trans);
+		this.mesh._updateTransform(this.trans);
+		this.bbox.update(this.trans, this.mesh);
 
 		this._addPendingGameObjects(!recursively);
 
@@ -711,9 +900,7 @@ class GameObject {
 		// update other collections
 		if (recursively) {
 			for (let [key, val] of this.children) {
-				val._addPendingComponents();
-				val._removePendingComponents();
-				val._removePendingGameObjects(true);
+				val.submitChanges(true);
 			}
 		}
 	}
@@ -750,28 +937,51 @@ class GameObject {
 		this.parent.removeGameObject(this);
 	}
 
+	// gets root object
+	getRoot() {
+		return this.scene.root;
+	}
+
+	/**
+	 * Sends message to all components in the scope of this object
+	 * @param {Msg} msg message to sent 
+	 */
+	sendmsgToComponents(msg, applyToChildren = false) {
+		// todo optimize and send only to subscribers!
+		for (let component of this.components) {
+			if (component.owner.hasState(STATE_LISTENING)) {
+				component.onmessage(msg);
+			}
+		}
+
+		if (applyToChildren) {
+			for (let child of this.children) {
+				child.sendmsg(msg, applyToChildren);
+			}
+		}
+	}
+
 	// adds a new game object into the scene
 	addGameObject(obj) {
 		obj.scene = this.scene;
 		obj.parent = this;
-		this.objectsToAdd.push(obj);
+		this._objectsToAdd.push(obj);
 	}
 
 	// removes given game object as soon as the update cycle finishes
 	removeGameObject(obj) {
 		obj.state = STATE_INACTIVE;
-		this.objectsToRemove.push(obj);
+		this._objectsToRemove.push(obj);
 	}
-
 
 	addComponent(component) {
 		component.owner = this;
 		component.scene = this.scene;
-		this.componentsToAdd.push(component);
+		this._componentsToAdd.push(component);
 	}
 
 	removeComponent(component) {
-		this.componentsToRemove.push(obj);
+		this._componentsToRemove.push(obj);
 	}
 
 	removeAllComponents() {
@@ -794,6 +1004,16 @@ class GameObject {
 		return false;
 	}
 
+	findComponent(name) {
+		for (let cmp of this.components) {
+			if (cmp.constructor.name == name) return cmp;
+		}
+		for (let cmp of this._componentsToAdd) {
+			if (cmp.constructor.name == name) return cmp;
+		}
+		return null;
+	}
+
 	// adds a new attribute
 	addAttribute(key, val) {
 		this.attributes.set(key, val);
@@ -812,9 +1032,6 @@ class GameObject {
 	update(delta, absolute) {
 		if (this.hasState(STATE_UPDATABLE)) {
 			this.submitChanges(false);
-
-			this.mesh._updateTransform(this.trans);
-			this.trans._updateTransform(this.parent == null ? null : this.parent.trans);
 
 			for (let component of this.components) {
 				component.update(delta, absolute);
@@ -837,7 +1054,7 @@ class GameObject {
 
 	// adds pending objects
 	_addPendingGameObjects(submitChanges = true) {
-		for (let obj of this.objectsToAdd) {
+		for (let obj of this._objectsToAdd) {
 			// set it in both addGameObject and _addPendingGameObject since
 			// the parent might not had its scene assigned
 			obj.scene = this.scene;
@@ -850,12 +1067,12 @@ class GameObject {
 			}
 		}
 
-		this.objectsToAdd = [];
+		this._objectsToAdd = [];
 	}
 
 	// removes pending objects;
 	_removePendingGameObjects(submitChanges = true) {
-		for (let obj of this.objectsToRemove) {
+		for (let obj of this._objectsToRemove) {
 			obj.removeAllComponents();
 			obj.submitChanges(false);
 			this.scene._removeGameObject(obj);
@@ -868,23 +1085,23 @@ class GameObject {
 			}
 		}
 
-		this.objectsToRemove = [];
+		this._objectsToRemove = [];
 	}
 
 	_addPendingComponents() {
-		for (let obj of this.componentsToAdd) {
+		for (let obj of this._componentsToAdd) {
 			obj.owner = this;
 			obj.scene = this.scene;
 			this.components.push(obj);
 			obj.oninit();
 		}
 
-		this.componentsToAdd = [];
+		this._componentsToAdd = [];
 	}
 
 	// removes all components that are to be removed
 	_removePendingComponents() {
-		for (let component of this.componentsToRemove) {
+		for (let component of this._componentsToRemove) {
 			component.finalize();
 
 			for (var i = 0; i < this.components.length; i++) {
@@ -895,7 +1112,7 @@ class GameObject {
 				}
 			}
 		}
-		this.componentsToRemove = [];
+		this._componentsToRemove = [];
 	}
 }
 GameObject.idCounter = 0; // static idCounter
@@ -1007,3 +1224,80 @@ class Component {
 }
 
 Component.idCounter = 0;
+
+
+
+class GameObjectBuilder {
+	constructor(name) {
+		this.gameObj = new GameObject(name);
+		this.isGlobal = false;
+	}
+
+	withSecondaryId(id) {
+		this.gameObj.secondaryId = id;
+		return this;
+	}
+
+	withComponent(cmp) {
+		this.gameObj.addComponent(cmp);
+		return this;
+	}
+
+	withAttribute(key, attr) {
+		this.gameObj.addAttribute(key, attr);
+		return this;
+	}
+
+	withParent(parent) {
+		this.parent = parent;
+		return this;
+	}
+
+	withTransform(trans) {
+		this.gameObj.trans = trans;
+		return this;
+	}
+
+	withPosition(posX, posY) {
+		this.gameObj.trans.setPosition(posX, posY);
+		return this;
+	}
+
+	withRotation(rot, offsetX = 0, offsetY = 0) {
+		this.gameObj.trans.rotation = rot;
+		this.gameObj.trans.rotationOffsetX = offsetX;
+		this.gameObj.trans.rotationOffsetY = offsetY;
+		return this;
+	}
+
+	withCenteredOrigin() {
+		this.gameObj.trans.rotationOffsetX = this.gameObj.mesh.width / 2;
+		this.gameObj.trans.rotationOffsetY = this.gameObj.mesh.height / 2;
+		return this;
+	}
+
+	withZIndex(zIndex) {
+		this.gameObj.zIndex = zIndex;
+		return this;
+	}
+
+	withMesh(mesh) {
+		this.gameObj.mesh = mesh;
+		return this;
+	}
+
+	asGlobal() {
+		this.isGlobal = true;
+		return this;
+	}
+
+	build(scene) {
+		if (this.isGlobal || this.parent == null) {
+			scene.addGlobalGameObject(this.gameObj);
+		} else {
+			this.parent.addGameObject(this.gameObj);
+		}
+
+		return this.gameObj;
+	}
+}
