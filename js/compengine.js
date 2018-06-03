@@ -984,6 +984,25 @@ class GameObject {
 		this._componentsToRemove.push(obj);
 	}
 
+	removeComponentByName(name){
+		for(let cmp of this.components){
+			if(cmp.constructor.name == name){
+				removeComponent(cmp);
+				return true;
+			}
+		}
+		// try also the pending collection
+		let cntr = 0;
+		for(let cmp of this._componentsToAdd){
+			if(cmp.constructor.name == name){
+				this._componentsToAdd.splice(cntr);
+				return true;
+			}
+			cntr++;
+		}
+		return false;
+	}
+
 	removeAllComponents() {
 		for (let cmp of this.components) {
 			this.removeComponent(cmp);

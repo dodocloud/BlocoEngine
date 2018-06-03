@@ -532,7 +532,7 @@ class ExecutorComponent extends Component {
 
     /**
      * Repeats the following part of the chain until endRepeat()
-     * @param {Number} num number of repetitions
+     * @param {Number} num number of repetitions, 0 for infinite loop
      */
     beginRepeat(num) {
         this._enqueue(CMD_BEGIN_REPEAT, num);
@@ -685,12 +685,12 @@ class ExecutorComponent extends Component {
     }
 
     /**
-     * Removes component from given game object
+     * Removes component from given game object (or the owner if null)
+     * @param {String} cmp name of the component 
      * @param {GameObject} gameObj 
-     * @param {Component} cmp 
      */
-    removeComponent(gameObj, cmp) {
-        this._enqueue(CMD_REMOVE_COMPONENT, gameObj, cmp);
+    removeComponent(cmp, gameObj = null) {
+        this._enqueue(CMD_REMOVE_COMPONENT, cmp, gameObj);
         return this;
     }
 
@@ -747,7 +747,7 @@ class ExecutorComponent extends Component {
                     temp.param2 = temp.param1;
                 }
 
-                if (--temp.param2 > 0) {
+                if (temp.param1 == 0 || --temp.param2 > 0) {
                     // jump to the beginning
                     this.current = temp;
                     this.update(delta, absolute);
@@ -899,7 +899,8 @@ class ExecutorComponent extends Component {
                 }
                 break;
             case CMD_REMOVE_COMPONENT:
-                this.current.param1.removeComponentByName(this.current.param2);
+                let gameObj2 = this.current.param2 != null ? this.current.param2 : this.owner;
+                gameObj2.removeComponentByName(this.current.param1);
                 this._gotoNextImmediately();
                 break;
             case CMD_REMOVE_GAME_OBJECT_BY_TAG:
