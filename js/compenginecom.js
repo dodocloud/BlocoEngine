@@ -532,7 +532,7 @@ class ExecutorComponent extends Component {
 
     /**
      * Repeats the following part of the chain until endRepeat()
-     * @param {Number} num number of repetitions, 0 for infinite loop
+     * @param {number|function} num number of repetitions, 0 for infinite loop; or function that returns that number
      */
     beginRepeat(num) {
         this._enqueue(CMD_BEGIN_REPEAT, num);
@@ -576,7 +576,7 @@ class ExecutorComponent extends Component {
 
     /**
      * Starts an infinite loop that will repeat every num second  
-     * @param {number} num number of seconds to wait
+     * @param {number|function} num number of seconds to wait or function that returns that number
      */
     beginInterval(num) {
         this._enqueue(CMD_BEGIN_INTERVAL, num);
@@ -620,8 +620,8 @@ class ExecutorComponent extends Component {
 
     /**
      * Adds a new component to a given game object (or to an owner if not specified)
-     * @param {Component} component
-     * @param {GameObject} gameObj  
+     * @param {Component|function} component component or function that returns a component
+     * @param {GameObject|function} gameObj game object or function that returns a game object 
      */
     addComponent(component, gameObj = null) {
         this._enqueue(CMD_ADD_COMPONENT, component, gameObj);
@@ -631,8 +631,8 @@ class ExecutorComponent extends Component {
     /**
      * Adds a new component to a given game object (or to an owner if not specified) 
      * and waits until its finished
-     * @param {Component} component 
-     * @param {GameObject} gameObj 
+     * @param {Component|function} component component or function that returns a component 
+     * @param {GameObject|function} gameObj game object or function that returns a game object 
      */
     addComponentAndWait(component, gameObj) {
         this._enqueue(CMD_ADD_COMPONENT_AND_WAIT, component, gameObj);
@@ -641,7 +641,7 @@ class ExecutorComponent extends Component {
 
     /**
      * Waits given amount of seconds
-     * @param {time} time number of seconds to wait 
+     * @param {time|function} time number of seconds to wait; or function that returns this number 
      */
     waitTime(time) {
         this._enqueue(CMD_WAIT_TIME, time);
@@ -650,7 +650,7 @@ class ExecutorComponent extends Component {
 
     /**
      * Waits until given component isn't finished
-     * @param {Component} component 
+     * @param {Component|function} component or function that returns this component 
      */
     waitForFinish(component) {
         this._enqueue(CMD_WAIT_FOR_FINISH, component);
@@ -668,7 +668,7 @@ class ExecutorComponent extends Component {
 
     /**
      * Waits given number of iterations of update loop
-     * @param {number} num 
+     * @param {number} num number of frames 
      */
     waitFrames(num) {
         this._enqueue(CMD_WAIT_FRAMES, num);
@@ -677,7 +677,7 @@ class ExecutorComponent extends Component {
 
     /**
      * Waits until a message with given key isn't sent
-     * @param {String} msg 
+     * @param {String} msg message key 
      */
     waitForMessage(msg) {
         this._enqueue(CMD_WAIT_FOR_MESSAGE, msg);
@@ -724,6 +724,14 @@ class ExecutorComponent extends Component {
         this.helpParam2 = msg.action;
     }
 
+    _getParam1(node){
+        return typeof(node.param1) == "function" ? node.param1() : node.param1;
+    }
+
+    _getParam2(node){
+        return typeof(node.param2) == "function" ? node.param2() : node.param2;
+    }
+
     update(delta, absolute) {
         if (this.current == null) {
             this.current = this._dequeue();
@@ -736,24 +744,23 @@ class ExecutorComponent extends Component {
 
         switch (this.current.key) {
             case CMD_BEGIN_REPEAT:
+                if (this.current.param2 == null) {
+                    // save the value into temporary variables
+                    this.current.param2 = this._getParam1(this.current); // for decreasing
+                    this.current.param3 = this._getParam1(this.current); // for zero-check
+                }
+
                 this.scopeStack.push(this.current);
                 this._gotoNextImmediately(delta, absolute);
                 break;
             case CMD_END_REPEAT:
                 let temp = this.scopeStack.pop();
-                if (temp.param2 === undefined) {
-                    // save param1 (number of repetitions) into temp variable
-                    // that will decrease over time
-                    temp.param2 = temp.param1;
-                }
 
-                if (temp.param1 == 0 || --temp.param2 > 0) {
+                if (temp.param3 == 0 || --temp.param2 > 0) {
                     // jump to the beginning
                     this.current = temp;
                     this.update(delta, absolute);
                 } else {
-                    // restore the variable
-                    temp.param2 = temp.param1;
                     this._gotoNextImmediately();
                 }
                 break;
@@ -775,18 +782,23 @@ class ExecutorComponent extends Component {
                 }
                 break;
             case CMD_BEGIN_INTERVAL:
+                if (this.current.param2 == null) {
+                    // save the value into param2
+                    this.current.param2 = this._getParam1(this.current);
+                }
                 if (this.helpParam == null) {
                     // save the beginning to a help variable and wait
                     this.helpParam = absolute;
-                } else if (absolute - this.helpParam >= this.current.param1) {
+                } else if (absolute - this.helpParam >= this.current.param2) {
                     // proceed
                     this.helpParam = null;
+                    this.current.param2 = null; // reset param2
                     this.scopeStack.push(this.current);
                     this._gotoNextImmediately();
                 }
                 break;
-            case CMD_END_INTERVAL:
-                this.current = this.scopeStack.pop();
+            case CMD_END_INTERVAL: 
+            this.current = this.scopeStack.pop();
                 this.update(delta, absolute);
                 break;
             case CMD_BEGIN_IF:
@@ -838,34 +850,47 @@ class ExecutorComponent extends Component {
                 this._gotoNextImmediately();
                 break;
             case CMD_WAIT_TIME:
+                if (this.current.param2 == null) {
+                    // save the value into param2
+                    this.current.param2 = this._getParam1(this.current);
+                }
                 if (this.helpParam == null) {
                     this.helpParam = absolute;
-                } else if (absolute - this.helpParam >= this.current.param1) {
+                } else if (absolute - this.helpParam >= this.current.param2) {
                     this.helpParam = null;
+                    this.current.param2 = null; // reset param2
                     this._gotoNextImmediately();
                 }
                 break;
             case CMD_ADD_COMPONENT:
-                let gameObj = this.current.param2 != null ? this.current.param2 : this.owner;
-                gameObj.addComponent(this.current.param1);
+                let gameObj = this.current.param2 != null ? this._getParam2(this.current) : this.owner;
+                gameObj.addComponent(this._getParam1(this.current));
                 this._gotoNextImmediately();
                 break;
             case CMD_ADD_COMPONENT_AND_WAIT:
+                if(this.current.param3 == null){
+                    this.current.param3 = this._getParam1(this.current);
+                }
+
                 if(this.helpParam == null) {
                     // add only once
                     this.helpParam = true;
-                    let gameObj = this.current.param2 != null ? this.current.param2 : this.owner;
-                    gameObj.addComponent(this.current.param1);
+                    let gameObj = this.current.param2 != null ? this._getParam2(this.current) : this.owner;
+                    gameObj.addComponent(this.current.param3);
                 }
-                
                 // wait for finish
-                if (this.current.param1.isFinished) {
+                if (this.current.param3.isFinished) {
                     this.helpParam = null;
+                    this.current.param2 = null;
                     this._gotoNextImmediately();
                 }
                 break;
             case CMD_WAIT_FOR_FINISH:
-                if (this.current.param1.isFinished) {
+                if (this.current.param2 == null) {
+                    this.current.param2 = this._getParam1(this.current);
+                }
+                if (this.current.param2.isFinished) {
+                    this.current.param2 = null;
                     this._gotoNextImmediately();
                 }
                 break;
@@ -926,11 +951,12 @@ class ExecutorComponent extends Component {
         }
     }
 
-    _enqueue(key, param1, param2) {
+    _enqueue(key, param1 = null, param2 = null) {
         var node = {
             key,
             param1,
             param2,
+            param3 : null,
             next: null,
         };
 
