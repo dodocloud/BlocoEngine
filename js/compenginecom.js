@@ -537,11 +537,11 @@ class ExNode {
             }
 
             if (this.param2 != null) {
-                this.param1A = typeof (this.param1) == "function" ? this.param1() : this.param1;
+                this.param2A = typeof (this.param2) == "function" ? this.param2() : this.param2;
             }
 
             if (this.param3 != null) {
-                this.param1A = typeof (this.param1) == "function" ? this.param1() : this.param1;
+                this.param3A = typeof (this.param3) == "function" ? this.param3() : this.param3;
             }
 
             this.cached = true;
@@ -818,7 +818,6 @@ class ExecutorComponent extends Component {
                 let temp = this.scopeStack.pop();
                 
                 temp.setParam1(temp.getParam1()-1);
-
                 if (temp.getParam2() == true || // infinite loop
                 temp.getParam1() > 0) {
                     // jump to the beginning
