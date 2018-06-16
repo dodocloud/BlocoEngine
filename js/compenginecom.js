@@ -513,6 +513,80 @@ class Stack {
     }
 }
 
+class ExNode {
+    constructor(key, param1 = null, param2 = null, param3 = null) {
+        this.key = key;
+        this.param1 = param1;
+        this.param2 = param2;
+        this.param3 = param3;
+
+        this.param1A = null;
+        this.param2A = null;
+        this.param3A = null;
+
+        this.cached = false;
+
+        this.next = null;
+        this.previous = null;
+    }
+
+    cacheParams() {
+        if (!this.cached) {
+            if (this.param1 != null) {
+                this.param1A = typeof (this.param1) == "function" ? this.param1() : this.param1;
+            }
+
+            if (this.param2 != null) {
+                this.param1A = typeof (this.param1) == "function" ? this.param1() : this.param1;
+            }
+
+            if (this.param3 != null) {
+                this.param1A = typeof (this.param1) == "function" ? this.param1() : this.param1;
+            }
+
+            this.cached = true;
+        }
+    }
+
+    getParam1() {
+        if (!this.cached) {
+            this.cacheParams();
+        }
+        return this.param1A;
+    }
+
+    setParam1(val) {
+        this.param1A = val;
+    }
+
+    getParam2() {
+        if (!this.cached) {
+            this.cacheParams();
+        }
+        return this.param2A;
+    }
+
+    setParam2(val) {
+        this.param2A = val;
+    }
+
+    getParam3() {
+        if (!this.cached) {
+            this.cacheParams();
+        }
+        return this.param3A;
+    }
+
+    setParam3(val) {
+        this.param3A = val;
+    }
+
+    resetCache() {
+        this.param1A = this.param2A = this.param3A = null;
+        this.cached = false;
+    }
+}
+
 /**
  * Component that executes a chain of commands during the update loop
  */
@@ -535,7 +609,7 @@ class ExecutorComponent extends Component {
      * @param {number|function} num number of repetitions, 0 for infinite loop; or function that returns that number
      */
     beginRepeat(num) {
-        this._enqueue(CMD_BEGIN_REPEAT, num);
+        this._enqueue(CMD_BEGIN_REPEAT, num, num == 0);
         return this;
     }
 
@@ -724,14 +798,6 @@ class ExecutorComponent extends Component {
         this.helpParam2 = msg.action;
     }
 
-    _getParam1(node){
-        return typeof(node.param1) == "function" ? node.param1() : node.param1;
-    }
-
-    _getParam2(node){
-        return typeof(node.param2) == "function" ? node.param2() : node.param2;
-    }
-
     update(delta, absolute) {
         if (this.current == null) {
             this.current = this._dequeue();
@@ -744,19 +810,17 @@ class ExecutorComponent extends Component {
 
         switch (this.current.key) {
             case CMD_BEGIN_REPEAT:
-                if (this.current.param2 == null) {
-                    // save the value into temporary variables
-                    this.current.param2 = this._getParam1(this.current); // for decreasing
-                    this.current.param3 = this._getParam1(this.current); // for zero-check
-                }
-
+                this.current.cacheParams();
                 this.scopeStack.push(this.current);
                 this._gotoNextImmediately(delta, absolute);
                 break;
             case CMD_END_REPEAT:
                 let temp = this.scopeStack.pop();
+                
+                temp.setParam1(temp.getParam1()-1);
 
-                if (temp.param3 == 0 || --temp.param2 > 0) {
+                if (temp.getParam2() == true || // infinite loop
+                temp.getParam1() > 0) {
                     // jump to the beginning
                     this.current = temp;
                     this.update(delta, absolute);
@@ -782,17 +846,16 @@ class ExecutorComponent extends Component {
                 }
                 break;
             case CMD_BEGIN_INTERVAL:
-                if (this.current.param2 == null) {
-                    // save the value into param2
-                    this.current.param2 = this._getParam1(this.current);
+                if (!this.current.cached) {
+                    this.current.cacheParams();
                 }
                 if (this.helpParam == null) {
                     // save the beginning to a help variable and wait
                     this.helpParam = absolute;
-                } else if (absolute - this.helpParam >= this.current.param2) {
+                } else if (absolute - this.helpParam >= this.current.getParam2()) {
                     // proceed
                     this.helpParam = null;
-                    this.current.param2 = null; // reset param2
+                    this.current.resetCache();
                     this.scopeStack.push(this.current);
                     this._gotoNextImmediately();
                 }
@@ -850,47 +913,42 @@ class ExecutorComponent extends Component {
                 this._gotoNextImmediately();
                 break;
             case CMD_WAIT_TIME:
-                if (this.current.param2 == null) {
-                    // save the value into param2
-                    this.current.param2 = this._getParam1(this.current);
-                }
+                this.current.cacheParams();
+
                 if (this.helpParam == null) {
                     this.helpParam = absolute;
-                } else if (absolute - this.helpParam >= this.current.param2) {
+                } else if (absolute - this.helpParam >= this.current.getParam2()) {
                     this.helpParam = null;
-                    this.current.param2 = null; // reset param2
+                    this.current.resetCache(); 
                     this._gotoNextImmediately();
                 }
                 break;
             case CMD_ADD_COMPONENT:
-                let gameObj = this.current.param2 != null ? this._getParam2(this.current) : this.owner;
-                gameObj.addComponent(this._getParam1(this.current));
+                let gameObj = this.current.getParam2() != null ? this.current.getParam2() : this.owner;
+                gameObj.addComponent(this.current.getParam1());
                 this._gotoNextImmediately();
                 break;
             case CMD_ADD_COMPONENT_AND_WAIT:
-                if(this.current.param3 == null){
-                    this.current.param3 = this._getParam1(this.current);
-                }
-
-                if(this.helpParam == null) {
+                if(!this.current.cached) {
                     // add only once
-                    this.helpParam = true;
-                    let gameObj = this.current.param2 != null ? this._getParam2(this.current) : this.owner;
-                    gameObj.addComponent(this.current.param3);
+                    this.current.cacheParams();
+                    let gameObj = this.current.getParam2() != null ? this.current.getParam2() : this.owner;
+                    gameObj.addComponent(this.current.getParam1());
                 }
                 // wait for finish
-                if (this.current.param3.isFinished) {
+                if (this.current.getParam1().isFinished) {
                     this.helpParam = null;
-                    this.current.param2 = null;
+                    this.current.resetCache();
                     this._gotoNextImmediately();
                 }
                 break;
             case CMD_WAIT_FOR_FINISH:
-                if (this.current.param2 == null) {
-                    this.current.param2 = this._getParam1(this.current);
+
+                if(!this.current.cached){
+                    this.current.cacheParams();
                 }
-                if (this.current.param2.isFinished) {
-                    this.current.param2 = null;
+                if (this.current.getParam2().isFinished) {
+                    this.current.resetCache();
                     this._gotoNextImmediately();
                 }
                 break;
@@ -952,13 +1010,7 @@ class ExecutorComponent extends Component {
     }
 
     _enqueue(key, param1 = null, param2 = null) {
-        var node = {
-            key,
-            param1,
-            param2,
-            param3 : null,
-            next: null,
-        };
+        var node = new ExNode(key, param1, param2);
 
         if (this.current != null && this.current != this.head) {
             // already running -> append to the current node
@@ -983,6 +1035,10 @@ class ExecutorComponent extends Component {
         }
     }
 
+    /**
+     * Dequeues a new node
+     *  @returns {ExNode} 
+     */
     _dequeue() {
         if (this.current == null || this.current.next == null) {
             return null;
