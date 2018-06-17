@@ -996,7 +996,7 @@ class GameObject {
 	removeComponentByName(name){
 		for(let cmp of this.components){
 			if(cmp.constructor.name == name){
-				removeComponent(cmp);
+				this.removeComponent(cmp);
 				return true;
 			}
 		}

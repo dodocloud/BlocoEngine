@@ -816,24 +816,26 @@ class ExecutorComponent extends Component {
                 break;
             case CMD_END_REPEAT:
                 let temp = this.scopeStack.pop();
-                
-                temp.setParam1(temp.getParam1()-1);
+
+                temp.setParam1(temp.getParam1() - 1);
                 if (temp.getParam2() == true || // infinite loop
-                temp.getParam1() > 0) {
+                    temp.getParam1() > 0) {
                     // jump to the beginning
                     this.current = temp;
                     this.update(delta, absolute);
                 } else {
-                    this._gotoNextImmediately();
+                    // reset values to their original state
+                    temp.resetCache();
+                    this._gotoNextImmediately(delta, absolute);
                 }
                 break;
             case CMD_EXECUTE:
                 this.current.param1(this);
-                this._gotoNextImmediately();
+                this._gotoNextImmediately(delta, absolute);
                 break;
             case CMD_BEGIN_WHILE:
                 this.scopeStack.push(this.current);
-                this._gotoNextImmediately();
+                this._gotoNextImmediately(delta, absolute);
                 break;
             case CMD_END_WHILE:
                 let temp2 = this.scopeStack.pop();
@@ -841,7 +843,7 @@ class ExecutorComponent extends Component {
                     this.current = temp2;
                     this.update(delta, absolute);
                 } else {
-                    this._gotoNextImmediately();
+                    this._gotoNextImmediately(delta, absolute);
                 }
                 break;
             case CMD_BEGIN_INTERVAL:
@@ -855,17 +857,17 @@ class ExecutorComponent extends Component {
                     this.helpParam = null;
                     this.current.resetCache();
                     this.scopeStack.push(this.current);
-                    this._gotoNextImmediately();
+                    this._gotoNextImmediately(delta, absolute);
                 }
                 break;
-            case CMD_END_INTERVAL: 
-            this.current = this.scopeStack.pop();
+            case CMD_END_INTERVAL:
+                this.current = this.scopeStack.pop();
                 this.update(delta, absolute);
                 break;
             case CMD_BEGIN_IF:
                 if (this.current.param1()) {
                     // condition fulfilled 
-                    this._gotoNextImmediately();
+                    this._gotoNextImmediately(delta, absolute);
                     break;
                 }
 
@@ -908,26 +910,28 @@ class ExecutorComponent extends Component {
                 this.update(delta, absolute);
                 break;
             case CMD_END_IF:
-                this._gotoNextImmediately();
+                this._gotoNextImmediately(delta, absolute);
                 break;
             case CMD_WAIT_TIME:
                 this.current.cacheParams();
 
                 if (this.helpParam == null) {
                     this.helpParam = absolute;
-                } else if (absolute - this.helpParam >= this.current.getParam2()) {
+                }
+
+                if ((absolute - this.helpParam) > this.current.getParam1()) {
                     this.helpParam = null;
-                    this.current.resetCache(); 
-                    this._gotoNextImmediately();
+                    this.current.resetCache();
+                    this._gotoNextImmediately(delta, absolute);
                 }
                 break;
             case CMD_ADD_COMPONENT:
                 let gameObj = this.current.getParam2() != null ? this.current.getParam2() : this.owner;
                 gameObj.addComponent(this.current.getParam1());
-                this._gotoNextImmediately();
+                this._gotoNextImmediately(delta, absolute);
                 break;
             case CMD_ADD_COMPONENT_AND_WAIT:
-                if(!this.current.cached) {
+                if (!this.current.cached) {
                     // add only once
                     this.current.cacheParams();
                     let gameObj = this.current.getParam2() != null ? this.current.getParam2() : this.owner;
@@ -937,30 +941,32 @@ class ExecutorComponent extends Component {
                 if (this.current.getParam1().isFinished) {
                     this.helpParam = null;
                     this.current.resetCache();
-                    this._gotoNextImmediately();
+                    this._gotoNextImmediately(delta, absolute);
                 }
                 break;
             case CMD_WAIT_FOR_FINISH:
 
-                if(!this.current.cached){
+                if (!this.current.cached) {
                     this.current.cacheParams();
                 }
                 if (this.current.getParam1().isFinished) {
                     this.current.resetCache();
-                    this._gotoNextImmediately();
+                    this._gotoNextImmediately(delta, absolute);
                 }
                 break;
             case CMD_WAIT_UNTIL:
                 if (!this.current.param1()) {
-                    this._gotoNext();
+                    this._gotoNextImmediately(delta, absolute);
                 }
                 break;
             case CMD_WAIT_FRAMES:
                 if (this.helpParam == null) {
                     this.helpParam = 0;
-                } else if (++this.helpParam >= this.current.param1) {
+                }
+
+                if (++this.helpParam > this.current.param1) {
                     this.helpParam = null;
-                    this._gotoNext();
+                    this._gotoNextImmediately(delta, absolute);
                 }
                 break;
             case CMD_WAIT_FOR_MESSAGE:
@@ -970,7 +976,7 @@ class ExecutorComponent extends Component {
                         // got message -> unsubscribe and proceed
                         this.unsubscribe(this.current.param1);
                         this.helpParam = this.helpParam2 = null;
-                        this._gotoNextImmediately();
+                        this._gotoNextImmediately(delta, absolute);
                     }
                 } else {
                     // just subscribe and wait
@@ -982,27 +988,27 @@ class ExecutorComponent extends Component {
             case CMD_REMOVE_COMPONENT:
                 let gameObj2 = this.current.param2 != null ? this.current.param2 : this.owner;
                 gameObj2.removeComponentByName(this.current.param1);
-                this._gotoNextImmediately();
+                this._gotoNextImmediately(delta, absolute);
                 break;
             case CMD_REMOVE_GAME_OBJECT_BY_TAG:
                 let obj = this.scene.findFirstGameObjectByTag(this.current.param1);
                 if (obj != null) {
                     obj.remove();
                 }
-                this._gotoNextImmediately();
+                this._gotoNextImmediately(delta, absolute);
                 break;
             case CMD_REMOVE_GAME_OBJECT:
                 this.current.param1.remove();
-                this._gotoNextImmediately();
+                this._gotoNextImmediately(delta, absolute);
                 break;
             case CMD_REMOVE_PREVIOUS:
-                if(this.current.previous != null){
-                    if(this.current.previous.previous != null){
+                if (this.current.previous != null) {
+                    if (this.current.previous.previous != null) {
                         this.current.previous.previous.next = this.current;
                     }
                     this.current.previous = this.current.previous.previous;
                 }
-                this._gotoNextImmediately();
+                this._gotoNextImmediately(delta, absolute);
                 break;
         }
     }

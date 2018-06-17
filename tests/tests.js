@@ -55,11 +55,11 @@ function runTests() {
 
             let executor = new ExecutorComponent()
                 .beginRepeat(3) // via literal
-                    .execute(() => repeatCounter1++)
+                .execute(() => repeatCounter1++)
                 .endRepeat()
                 .execute(() => assert(repeatCounter1 == 3, "Wrong counter value"))
                 .beginRepeat(() => 3) // via function
-                    .execute(() => repeatCounter2++)
+                .execute(() => repeatCounter2++)
                 .endRepeat()
                 .execute(() => assert(repeatCounter2 == 3, "Wrong counter value"));
 
@@ -81,8 +81,8 @@ function runTests() {
 
             let executor = new ExecutorComponent()
                 .beginWhile(() => param > 0)
-                    .execute(() => param--)
-                    .execute(() => execCounter++)
+                .execute(() => param--)
+                .execute(() => execCounter++)
                 .endWhile()
                 .execute(() => assert(param == 0, "Wrong parameter value : " + param + ", expected 0"))
                 .execute(() => assert(execCounter == 3, "While should have be called 3x"));
@@ -105,22 +105,22 @@ function runTests() {
 
             let executor = new ExecutorComponent()
                 .beginInterval(3) // via literal
-                    .execute(() => {
-                        if(intervalCntr == 0) {
-                            // first loop -> check if the time matches
-                            assert(parseInt(counter) == 3, "Method executed in a different time than expected");
-                        }
-                    })
-                    .execute(() => intervalCntr++)
-                    .execute((cmp) => {
-                        // finish after 3 rounds
-                        if(intervalCntr >= 3) cmp.finish();
-                    })
+                .execute(() => {
+                    if (intervalCntr == 0) {
+                        // first loop -> check if the time matches
+                        assert(parseInt(counter) == 3, "Method executed in a different time than expected");
+                    }
+                })
+                .execute(() => intervalCntr++)
+                .execute((cmp) => {
+                    // finish after 3 rounds
+                    if (intervalCntr >= 3) cmp.finish();
+                })
                 .endInterval()
 
             obj.addComponent(executor);
 
-            
+
             while (!executor.isFinished) { // simulate game loop
                 scene.update(0.1, counter);
                 counter += 0.1;
@@ -137,32 +137,32 @@ function runTests() {
 
             let executor = new ExecutorComponent()
                 .beginInterval(() => currentInterval) // via function
-                    .execute(() => {
-                        switch(intervalCntr){
-                            case 0:
-                                assert(parseInt(counter) == 4, "Method executed in a different time than expected");
+                .execute(() => {
+                    switch (intervalCntr) {
+                        case 0:
+                            assert(parseInt(counter) == 4, "Method executed in a different time than expected");
                             break;
-                            case 1:
-                                assert(parseInt(counter) == 7, "Method executed in a different time than expected");
+                        case 1:
+                            assert(parseInt(counter) == 7, "Method executed in a different time than expected");
                             break;
-                            case 2:
-                                assert(parseInt(counter) == 9, "Method executed in a different time than expected");
+                        case 2:
+                            assert(parseInt(counter) == 9, "Method executed in a different time than expected");
                             break;
-                        }
-                    })
-                    .execute(() => {
-                        intervalCntr++;
-                        currentInterval--; // decrease the interval with every loop
-                    })
-                    .execute((cmp) => {
-                        // finish after 3 rounds
-                        if(intervalCntr >= 3) cmp.finish();
-                    })
+                    }
+                })
+                .execute(() => {
+                    intervalCntr++;
+                    currentInterval--; // decrease the interval with every loop
+                })
+                .execute((cmp) => {
+                    // finish after 3 rounds
+                    if (intervalCntr >= 3) cmp.finish();
+                })
                 .endInterval()
 
             obj.addComponent(executor);
 
-            
+
             while (!executor.isFinished) { // simulate game loop
                 scene.update(0.1, counter);
                 counter += 0.1;
@@ -174,11 +174,14 @@ function runTests() {
             let rot = new RotationAnim();
             let obj = new GameObject("gameObj");
             scene.addGlobalGameObject(obj);
+            let prom = 0;
+            let prom2 = 0;
+            let prom3 = 0;
 
             let executor = new ExecutorComponent()
                 .waitTime(3) // execute with a delay				
                 .beginIf(() => true)
-                .execute(() => console.log("1"))
+                .execute(() => prom++)
                 .beginIf(() => false)
                 .execute(() => assert(false, "this closure shouldn't be executed!"))
                 .endIf()
@@ -190,10 +193,10 @@ function runTests() {
                 .execute(() => assert(false, "this closure shouldn't be executed!"))
                 .endIf()
                 .else()
-                .execute(() => console.log("2"))
+                .execute(() => prom++)
                 .beginRepeat(2)
                 .beginRepeat(3)
-                .execute((cmp) => console.log("REP " + cmp.helpParam))
+                .execute((cmp) => prom3++)
                 .endRepeat()
                 .endRepeat()
                 .endIf()
@@ -202,12 +205,12 @@ function runTests() {
                 .endIf()
                 .beginRepeat(2)
                 .execute(() => {
-                    console.log("REP SEC");
+                    prom++;
                 })
                 .endRepeat()
-                .beginWhile(() => Math.random() > 0.9)
+                .beginWhile(() => prom2 < 10)
                 .execute(() => {
-                    console.log("WHILE")
+                    prom2++;
                 })
                 .endWhile()
                 .addComponent(rot, rect2)
@@ -229,21 +232,215 @@ function runTests() {
                 scene.update(0.1, counter);
                 counter += 0.1;
             }
-        }
+
+            assert(prom == 4, "Wrong value of prom. Some of execute() closure hasn't been called. Expected 4, given " + prom);
+            assert(prom2 == 10, "Wrong value of prom2. Expected 10, given " + prom2);
+            assert(prom3 == 6, "Wrong value of prom3. Expected 6, given " + prom3);
+        },
+
+        'Executor add component test': function () {
+            scene.clearScene();
+            let obj = new GameObject("testObject");
+            scene.addGlobalGameObject(obj);
+            let counter = 0;
+
+            let executor = new ExecutorComponent()
+                .addComponent(new RotationAnim()) // directly
+                .addComponent(() => new MovingAnim()) // by function
+
+            obj.addComponent(executor);
+
+            while (!executor.isFinished) { // simulate game loop
+                scene.update(0.1, counter);
+                counter += 0.1;
+            }
+
+            assert(obj.findComponent("RotationAnim") != null, "Rotation anim is missing");
+            assert(obj.findComponent("MovingAnim") != null, "Moving anim is missing");
+        },
+
+        'Executor add component and wait test': function () {
+            scene.clearScene();
+            let obj = new GameObject("testObject");
+            scene.addGlobalGameObject(obj);
+
+            let anim = new RotationAnim();
+            let anim2 = new MovingAnim();
+
+            let executor = new ExecutorComponent()
+                .addComponentAndWait(anim) // directly
+                .addComponentAndWait(anim2) // by function
+
+            obj.addComponent(executor);
+
+            scene.update(0.1, 0.1);
+            anim.finish();
+            scene.update(0.1, 0.2);
+            assert(obj.findComponent(RotationAnim.constructor.name) == null, "Rotation anim should have been deleted");
+            anim2.finish();
+            scene.update(0.1, 0.2);
+            assert(obj.findComponent(MovingAnim.constructor.name) == null, "MovingAnim should have been deleted");
+            scene.update(0.1, 0.2);
+            assert(obj.findComponent(ExecutorComponent.constructor.name) == null, "ExecutorComponent should have been deleted");
+
+        },
+
+        'Wait time test': function () {
+            scene.clearScene();
+            let obj = new GameObject("testObject");
+            scene.addGlobalGameObject(obj);
+
+            let prom = 0;
+
+            let executor = new ExecutorComponent()
+                .waitTime(0.8) // directly
+                .execute(() => prom++)
+                .waitTime(() => 1.5) // by function
+                .execute(() => prom++);
+
+
+            obj.addComponent(executor);
+
+            scene.update(1, 1);
+            assert(prom == 0, "Variable prom should be 0 as the first loop hasn't ended yet");
+            scene.update(1, 2);
+            assert(prom == 1, "Variable prom should be 1 as the first loop already ended");
+            scene.update(1, 3);
+            assert(prom == 1, "Variable prom should be 1 as the second loop hasn't ended yet");
+            scene.update(1, 4);
+            assert(prom == 2, "Variable prom should be 2 as the second loop already ended");
+
+        },
+
+        'Wait for finish test': function () {
+            scene.clearScene();
+            let obj = new GameObject("testObject");
+            scene.addGlobalGameObject(obj);
+            let anim = new RotationAnim();
+            let prom = 0;
+            let executor = new ExecutorComponent()
+                .addComponent(anim)
+                .waitForFinish(anim)
+                .execute(() => prom++);
+
+
+            obj.addComponent(executor);
+
+            scene.update(1, 1);
+            assert(prom == 0, "Variable prom should be 0 as the animation hasn't ended yet");
+            scene.update(1, 2);
+            assert(prom == 0, "Variable prom should be 0 as the animation hasn't ended yet");
+            scene.update(1, 3);
+            assert(prom == 0, "Variable prom should be 0 as the animation hasn't ended yet");
+            anim.finish();
+            scene.update(1, 4);
+            assert(prom == 1, "Variable prom should be 1 as the animation already ended");
+            assert(executor.isFinished == true, "Executor should have already finished");
+        },
+
+        'Wait until test': function () {
+            scene.clearScene();
+            let obj = new GameObject("testObject");
+            scene.addGlobalGameObject(obj);
+            let anim = new RotationAnim();
+            let prom = 0;
+            let executor = new ExecutorComponent()
+                .addComponent(anim)
+                .waitUntil(() => !anim.isFinished)
+                .execute(() => prom++);
+
+
+            obj.addComponent(executor);
+
+            scene.update(1, 1);
+            assert(prom == 0, "Variable prom should be 0 as the animation hasn't ended yet");
+            scene.update(1, 2);
+            assert(prom == 0, "Variable prom should be 0 as the animation hasn't ended yet");
+            anim.finish();
+            scene.update(1, 3);
+            assert(prom == 1, "Variable prom should be 1 as the animation already ended");
+            assert(executor.isFinished == true, "Executor should have already finished");
+        },
+
+        'Wait frames test': function () {
+            scene.clearScene();
+            let obj = new GameObject("testObject");
+            scene.addGlobalGameObject(obj);
+            let prom = 0;
+            let executor = new ExecutorComponent()
+                .waitFrames(5)
+                .execute(() => prom++);
+
+            obj.addComponent(executor);
+
+            scene.update(1, 1);
+            assert(prom == 0, "Variable prom should be 0 as the executor shouldn't have gone to the next item");
+            scene.update(1, 2);
+            assert(prom == 0, "Variable prom should be 0 as the executor shouldn't have gone to the next item");
+            scene.update(1, 3);
+            assert(prom == 0, "Variable prom should be 0 as the executor shouldn't have gone to the next item");
+            scene.update(1, 4);
+            assert(prom == 0, "Variable prom should be 0 as the executor shouldn't have gone to the next item");
+            scene.update(1, 5);
+            assert(prom == 0, "Variable prom should be 0 as the executor shouldn't have gone to the next item");
+            scene.update(1, 6);
+            assert(prom == 1, "Variable prom should be 1 as the waiting loop already ended");
+        },
+
+
+        'Executor wait for message test': function () {
+            scene.clearScene();
+            let obj = new GameObject("testObject");
+            scene.addGlobalGameObject(obj);
+            let counter = 0;
+            let prom = 0;
+
+            let executor = new ExecutorComponent()
+                .waitForMessage("MOJO")
+                .execute(() => prom++)
+                .waitForMessage("DOJO")
+                .execute(() => prom++)
+
+            obj.addComponent(executor);
+
+            scene.update(1, 1);
+            assert(prom == 0, "Variable prom should be 0 as it shouldn't have been incremented yet");
+            scene.update(1, 2);
+            scene.sendmsg("MOJO");
+            assert(prom == 0, "Variable prom should be 0 as the message has been sent but the scene hasn't been updated yet");
+            scene.update(1, 3);
+            assert(prom == 1, "Variable prom should be now 1");
+            scene.update(1, 4);
+            assert(prom == 1, "Variable prom should be 1 as it shouldn't have been incremented yet");
+            scene.sendmsg("DOJO");
+            scene.update(1, 5);
+            assert(prom == 2, "Variable prom should be 2 as the message has been already sent");
+        },
+
+        'Executor remove component test': function () {
+            scene.clearScene();
+            let obj = new GameObject("testObject");
+            scene.addGlobalGameObject(obj);
+            let counter = 0;
+
+            let executor = new ExecutorComponent()
+                .addComponent(new RotationAnim())
+                .waitTime(0.5)
+                .removeComponent("RotationAnim");
+
+            obj.addComponent(executor);
+
+            scene.update(1, 1);
+            assert(obj.findComponent("RotationAnim") != null, "Rotation anim is missing");
+            scene.update(1, 2);
+            assert(obj.findComponent("RotationAnim") == null, "Rotation anim should be deleted");
+        },
+
+        // TODO 3 more tests
     });
 }
 
 class RotationAnim extends Component {
-    oninit() {
-        this.subscribe("STOP");
-    }
-
-    onmessage(msg) {
-        if (msg.action == "STOP") {
-            this.finish();
-        }
-    }
-
     update(delta, absolute) {
         this.owner.trans.rotation += delta;
     }
@@ -254,13 +451,7 @@ class MovingAnim extends Component {
         this.initPosX = this.owner.trans.posX;
         this.initPosY = this.owner.trans.posY;
         this.radius = 1;
-        this.subscribe("STOP");
-    }
 
-    onmessage(msg) {
-        if (msg.action == "STOP") {
-            this.finish();
-        }
     }
 
     update(delta, absolute) {
