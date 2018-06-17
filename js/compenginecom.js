@@ -851,8 +851,7 @@ class ExecutorComponent extends Component {
                 if (this.helpParam == null) {
                     // save the beginning to a help variable and wait
                     this.helpParam = absolute;
-                } else if (absolute - this.helpParam >= this.current.getParam2()) {
-                    // proceed
+                } else if ((absolute - this.helpParam) >= this.current.getParam1()) {
                     this.helpParam = null;
                     this.current.resetCache();
                     this.scopeStack.push(this.current);
@@ -946,7 +945,7 @@ class ExecutorComponent extends Component {
                 if(!this.current.cached){
                     this.current.cacheParams();
                 }
-                if (this.current.getParam2().isFinished) {
+                if (this.current.getParam1().isFinished) {
                     this.current.resetCache();
                     this._gotoNextImmediately();
                 }

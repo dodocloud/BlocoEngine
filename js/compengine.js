@@ -310,6 +310,15 @@ class Scene {
 		this.subscribedMessages.get(component.id).push(msgKey);
 	}
 
+	_unsubscribeComponent(msgKey, component) {
+		var subs = this.subscribers.get(msgKey);
+		if (subs !== undefined) {
+			subs.delete(component.id);
+		}
+
+		this.subscribedMessages.delete(component.id);
+	}
+
 	_addGameObject(obj) {
 		// fill all collections
 		if (!this.gameObjectTags.has(obj.tag)) {
