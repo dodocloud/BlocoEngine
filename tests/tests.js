@@ -436,7 +436,93 @@ function runTests() {
             assert(obj.findComponent("RotationAnim") == null, "Rotation anim should be deleted");
         },
 
-        // TODO 3 more tests
+        'Executor remove game object by tag test': function () {
+            scene.clearScene();
+            let obj = new GameObject("testObject");
+            let obj2 = new GameObject("testObject2");
+            scene.addGlobalGameObject(obj);
+            scene.addGlobalGameObject(obj2);
+            let counter = 0;
+
+            let executor = new ExecutorComponent()
+                .waitTime(1)
+                .removeGameObjectByTag("testObject2");
+
+            obj.addComponent(executor);
+
+            scene.update(1, 1); // will add executor to the game
+            assert(scene.findFirstObjectByTag("testObject2") != null, "The object shouldn't be deleted yet");
+            scene.update(1.5, 2.5); 
+            assert(scene.findFirstObjectByTag("testObject2") == null, "The object should have been already deleted");
+        },
+
+        'Executor remove game object test': function () {
+            scene.clearScene();
+            let obj = new GameObject("testObject");
+            let obj2 = new GameObject("testObject2");
+            scene.addGlobalGameObject(obj);
+            scene.addGlobalGameObject(obj2);
+            let counter = 0;
+
+            let executor = new ExecutorComponent()
+                .waitTime(1)
+                .removeGameObject(obj2);
+
+            obj.addComponent(executor);
+
+            scene.update(1, 1); // will add executor to the game
+            assert(scene.findFirstObjectByTag("testObject2") != null, "The object shouldn't be deleted yet");
+            scene.update(1.5, 2.5); 
+            assert(scene.findFirstObjectByTag("testObject2") == null, "The object should have been already deleted");
+        },
+
+        'Executor remove previous test': function () {
+            scene.clearScene();
+            let obj = new GameObject("testObject");
+            scene.addGlobalGameObject(obj);
+            let counter = 0;
+            let prom = 0;
+            let executor = new ExecutorComponent()
+                .beginRepeat(3)
+                .execute(() => prom++)
+                .execute(() => prom++)
+                .execute(() => prom++)
+                .removePrevious() // will remove one execute() with every loop -> 3+2+1 run
+                .endRepeat()
+                
+
+            obj.addComponent(executor);
+
+            while (!executor.isFinished) { // simulate game loop
+                scene.update(0.1, counter);
+                counter += 0.1;
+            }
+
+            assert(prom == 6, "Unexpected value of the variable prom, expected 6, got "+prom);
+        },
+
+        'Executor instant test': function () {
+            scene.clearScene();
+            let obj = new GameObject("testObject");
+            scene.addGlobalGameObject(obj);
+            let prom = 0;
+
+            let executor = new ExecutorComponent()
+                .execute(() => prom++)
+                .execute(() => prom++)
+                .waitFrames(0)
+                .waitTime(0)
+                .beginIf(() => true)
+                  .execute(() => prom++)
+                .endIf()
+
+            obj.addComponent(executor);
+
+            scene.update(1, 1); // will add executor to the game
+            scene.update(1, 2); // will do one-step update
+            assert(prom == 3, "Unexpected number of execute() calls. Expected 3, got "+prom);
+
+        },
     });
 }
 

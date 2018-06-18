@@ -609,6 +609,9 @@ class ExecutorComponent extends Component {
      * @param {number|function} num number of repetitions, 0 for infinite loop; or function that returns that number
      */
     beginRepeat(num) {
+        if(typeof(num) !== `number` && typeof(num) !== `function`){
+            throw Error("Invalid type. Expected number or function");
+        }
         this._enqueue(CMD_BEGIN_REPEAT, num, num == 0);
         return this;
     }
@@ -626,6 +629,9 @@ class ExecutorComponent extends Component {
      * @param {action} func function to execute 
      */
     execute(func) {
+        if(typeof(func) !== `function`){
+            throw Error("Invalid type. Expected function");
+        }
         this._enqueue(CMD_EXECUTE, func);
         return this;
     }
@@ -636,6 +642,9 @@ class ExecutorComponent extends Component {
      * @param {function} func function that returns either true or false
      */
     beginWhile(func) {
+        if(typeof(func) !== `function`){
+            throw Error("Invalid type. Expected function");
+        }
         this._enqueue(CMD_BEGIN_WHILE, func);
         return this;
     }
@@ -653,6 +662,9 @@ class ExecutorComponent extends Component {
      * @param {number|function} num number of seconds to wait or function that returns that number
      */
     beginInterval(num) {
+        if(typeof(num) !== `number` && typeof(num) !== `function`){
+            throw Error("Invalid type. Expected number or function");
+        }
         this._enqueue(CMD_BEGIN_INTERVAL, num);
         return this;
     }
@@ -671,6 +683,9 @@ class ExecutorComponent extends Component {
      * @param {function} func function that returns either true or false 
      */
     beginIf(func) {
+        if(typeof(func) !== `function`){
+            throw Error("Invalid type. Expected function");
+        }
         this._enqueue(CMD_BEGIN_IF, func);
         return this;
     }
@@ -698,6 +713,10 @@ class ExecutorComponent extends Component {
      * @param {GameObject|function} gameObj game object or function that returns a game object 
      */
     addComponent(component, gameObj = null) {
+        if(typeof(component) == `object` && (!(component instanceof Component)) ||
+        (gameObj != null && typeof(gameObj) == `object` && !(gameObj instanceof GameObject))){
+            throw Error("Wrong type. Expected Component and GameObject");
+        }
         this._enqueue(CMD_ADD_COMPONENT, component, gameObj);
         return this;
     }
@@ -709,6 +728,10 @@ class ExecutorComponent extends Component {
      * @param {GameObject|function} gameObj game object or function that returns a game object 
      */
     addComponentAndWait(component, gameObj) {
+        if(typeof(component) == `object` && (!(component instanceof Component)) ||
+        (gameObj != null && typeof(gameObj) == `object` && !(gameObj instanceof GameObject))){
+            throw Error("Wrong type. Expected Component and GameObject");
+        }
         this._enqueue(CMD_ADD_COMPONENT_AND_WAIT, component, gameObj);
         return this;
     }
@@ -718,6 +741,9 @@ class ExecutorComponent extends Component {
      * @param {time|function} time number of seconds to wait; or function that returns this number 
      */
     waitTime(time) {
+        if(typeof(time) !== `number` && typeof(time) !== `function`){
+            throw Error("Invalid type. Expected number or function");
+        }
         this._enqueue(CMD_WAIT_TIME, time);
         return this;
     }
@@ -727,6 +753,9 @@ class ExecutorComponent extends Component {
      * @param {Component|function} component or function that returns this component 
      */
     waitForFinish(component) {
+        if(typeof(component) == `object` && (!(component instanceof Component))){
+            throw Error("Wrong type. Expected Component");
+        }
         this._enqueue(CMD_WAIT_FOR_FINISH, component);
         return this;
     }
@@ -736,6 +765,9 @@ class ExecutorComponent extends Component {
      * @param {Function} func 
      */
     waitUntil(func) {
+        if(typeof(func) !== `function`){
+            throw Error("Invalid type. Expected function");
+        }
         this._enqueue(CMD_WAIT_UNTIL, func);
         return this;
     }
@@ -745,6 +777,9 @@ class ExecutorComponent extends Component {
      * @param {number} num number of frames 
      */
     waitFrames(num) {
+        if(typeof(num) !== `number`){
+            throw Error("Invalid type. Expected number");
+        }
         this._enqueue(CMD_WAIT_FRAMES, num);
         return this;
     }
@@ -754,6 +789,9 @@ class ExecutorComponent extends Component {
      * @param {String} msg message key 
      */
     waitForMessage(msg) {
+        if(typeof(msg) !== `string`){
+            throw Error("Invalid type. Expected string");
+        }
         this._enqueue(CMD_WAIT_FOR_MESSAGE, msg);
         return this;
     }
@@ -764,6 +802,10 @@ class ExecutorComponent extends Component {
      * @param {GameObject} gameObj 
      */
     removeComponent(cmp, gameObj = null) {
+        if(typeof(cmp) == `object` && (!(cmp instanceof Component)) ||
+        (gameObj != null && typeof(gameObj) == `object` && !(gameObj instanceof GameObject))){
+            throw Error("Wrong type. Expected Component and GameObject");
+        }
         this._enqueue(CMD_REMOVE_COMPONENT, cmp, gameObj);
         return this;
     }
@@ -773,6 +815,9 @@ class ExecutorComponent extends Component {
      * @param {String} tag 
      */
     removeGameObjectByTag(tag) {
+        if(typeof(tag) !== `string`){
+            throw Error("Invalid type. Expected string");
+        }
         this._enqueue(CMD_REMOVE_GAME_OBJECT_BY_TAG, tag);
         return this;
     }
@@ -782,6 +827,9 @@ class ExecutorComponent extends Component {
      * @param {GameObject} obj 
      */
     removeGameObject(obj) {
+        if(typeof(obj) == `object` && (!(obj instanceof GameObject))){
+            throw Error("Wrong type. Expected GameObject");
+        }
         this._enqueue(CMD_REMOVE_GAME_OBJECT, obj);
         return this;
     }
@@ -991,7 +1039,7 @@ class ExecutorComponent extends Component {
                 this._gotoNextImmediately(delta, absolute);
                 break;
             case CMD_REMOVE_GAME_OBJECT_BY_TAG:
-                let obj = this.scene.findFirstGameObjectByTag(this.current.param1);
+                let obj = this.scene.findFirstObjectByTag(this.current.param1);
                 if (obj != null) {
                     obj.remove();
                 }
