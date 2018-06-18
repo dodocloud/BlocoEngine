@@ -6,27 +6,6 @@ function runTests() {
     let canvas = document.getElementById('gameCanvas');
     var scene = new Scene(canvas);
 
-
-    let rect1 = new GameObject("rect1");
-    rect1.mesh = new RectMesh("rgb(255,0,0)", 1, 1); // 100x100 pixels
-    rect1.trans.setPosition(2, 2);
-    rect1.trans.rotationOffsetX = 0.5;
-    rect1.trans.rotationOffsetY = 0.5;
-    rect1.addComponent(new BasicRenderer());
-    rect1.addComponent(new RotationAnim());
-    scene.addGlobalGameObject(rect1);
-
-    let rect2 = new GameObject("rect2");
-    rect2.mesh = new RectMesh("rgb(0,255,0)", 1, 1); // 100x100 pixels
-    rect2.trans.setPosition(3.5, 2);
-    rect2.trans.rotationOffsetX = 0.5;
-    rect2.trans.rotationOffsetY = 0.5;
-    rect2.addComponent(new BasicRenderer());
-    rect2.addComponent(new RotationAnim());
-    scene.addGlobalGameObject(rect2);
-
-    let rot = new RotationAnim();
-
     tests({
         'Executor execute': function () {
             scene.clearScene();
@@ -213,7 +192,7 @@ function runTests() {
                     prom2++;
                 })
                 .endWhile()
-                .addComponent(rot, rect2)
+                .addComponent(rot, obj)
                 .waitTime(2)
                 .execute(() => rot.finish())
                 .waitForFinish(rot)
