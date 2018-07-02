@@ -1,3 +1,12 @@
+
+var Interpolation = {};
+Interpolation.linear = (current, start, length) => Math.min(1, Math.max(0, (current - start) / length));
+Interpolation.easeinout = (current, start, length) => {
+    let pos = Interpolation.linear(current, start, length);
+    let posInt = pos < 0.5 ? 2 * pos * pos : -1 + (4 - 2 * pos) * pos;
+    return Math.min(1, Math.max(0, posInt));
+}
+
 // Convert radians to degrees
 function radToDeg(angle) {
 	return angle * (180 / Math.PI);
