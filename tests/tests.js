@@ -502,6 +502,7 @@ function runTests() {
             assert(prom == 3, "Unexpected number of execute() calls. Expected 3, got "+prom);
 
         },
+
     });
 }
 
