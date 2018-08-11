@@ -1,19 +1,36 @@
 
-class Animation extends Component {
+var Interpolation = {
+    linear : null,
+    easeinout: null,
+};
+
+Interpolation.linear = (current, start, length) => Math.min(1, Math.max(0, (current - start) / length));
+Interpolation.easeinout = (current, start, length) => {
+    let pos = Interpolation.linear(current, start, length);
+    let posInt = pos < 0.5 ? 2 * pos * pos : -1 + (4 - 2 * pos) * pos;
+    return Math.min(1, Math.max(0, posInt));
+}
+
+
+class BaseAnimation extends Component {
+    duration = 0;
+    goBack = false;
+    goingBack = false;
+    loops = 0;
+    currentLoop = 0;
+    startTime = 0;
+    interpolation: any = null;
+
     // loops = 0 for infinite!
     constructor(duration, goBack = false, loops = 1) {
         super();
         this.duration = duration;
         this.goBack = goBack;
-        this.goingBack = false;
         this.loops = loops;
-        this.currentLoop = 0;
-        this.startTime = 0;
-
         this.interpolation = Interpolation.linear;
     }
 
-    update(delta, absolute) {
+    update(delta: number, absolute : number) {
         if (this.startTime == 0) {
             this.startTime = absolute;
         }
@@ -52,8 +69,13 @@ class Animation extends Component {
     }
 }
 
-class TranslateAnimation extends Animation {
-    constructor(srcPosX, srcPosY, targetPosX, targetPosY, duration, goBack = false, loops = 1) {
+class TranslateAnimation extends BaseAnimation {
+    srcPosX = 0;
+    srcPosY = 0;
+    targetPosX = 0;
+    targetPosY = 0;
+
+    constructor(srcPosX: number, srcPosY: number, targetPosX: number, targetPosY: number, duration: number, goBack = false, loops = 1) {
         super(duration, goBack, loops);
         this.srcPosX = srcPosX;
         this.srcPosY = srcPosY;
@@ -63,22 +85,25 @@ class TranslateAnimation extends Animation {
 
     oninit() {
         super.oninit();
-        this.owner.trans.posX = this.srcPosX;
-        this.owner.trans.posY = this.srcPosY;
+        this.owner.mesh.position.x = this.srcPosX;
+        this.owner.mesh.position.y = this.srcPosY;
     }
 
     _applyAnim(percent, inverted) {
         if (inverted) {
-            this.owner.trans.posX = this.targetPosX + percent * (this.srcPosX - this.targetPosX);
-            this.owner.trans.posY = this.targetPosY + percent * (this.srcPosY - this.targetPosY);
+            this.owner.mesh.position.x = this.targetPosX + percent * (this.srcPosX - this.targetPosX);
+            this.owner.mesh.position.y = this.targetPosY + percent * (this.srcPosY - this.targetPosY);
         } else {
-            this.owner.trans.posX = this.srcPosX + percent * (this.targetPosX - this.srcPosX);
-            this.owner.trans.posY = this.srcPosY + percent * (this.targetPosY - this.srcPosY);
+            this.owner.mesh.position.x = this.srcPosX + percent * (this.targetPosX - this.srcPosX);
+            this.owner.mesh.position.y = this.srcPosY + percent * (this.targetPosY - this.srcPosY);
         }
     }
 }
 
-class RotationAnimation extends Animation {
+class RotationAnimation extends BaseAnimation {
+    srcRot = 0;
+    targetRot = 0;
+    
     constructor(srcRot, targetRot, duration, goBack = false, loops = 1) {
         super(duration, goBack, loops);
         this.srcRot = srcRot;
@@ -87,14 +112,14 @@ class RotationAnimation extends Animation {
 
     oninit() {
         super.oninit();
-        this.owner.trans.rotation = this.srcRot;
+        this.owner.mesh.rotation = this.srcRot;
     }
 
     _applyAnim(percent, inverted) {
         if (inverted) {
-            this.owner.trans.rotation = this.targetRot + percent * (this.srcRot - this.targetRot);
+            this.owner.mesh.rotation = this.targetRot + percent * (this.srcRot - this.targetRot);
         } else {
-            this.owner.trans.rotation = this.srcRot + percent * (this.targetRot - this.srcRot);
+            this.owner.mesh.rotation = this.srcRot + percent * (this.targetRot - this.srcRot);
         }
     }
 }
