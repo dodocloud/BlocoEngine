@@ -8,7 +8,7 @@ engine.then((val) => newGame(val.default));
 
 
 // Start a new game
-function newGame(engine: DoDoEngine) {
+function newGame(engine: DodoEngine) {
     
     engine.init(document.getElementById("gameCanvas") as HTMLCanvasElement);
 

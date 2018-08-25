@@ -10,8 +10,8 @@ class DodoEngine {
 
     init(canvas: HTMLCanvasElement, resolution: number = 1) {
         this.app = new PIXI.Application({
-            width: canvas.width,
-            height: canvas.height,
+            width: canvas.width/resolution,
+            height: canvas.height/resolution,
             antialias: true,
             view: canvas,
             resolution: resolution // resolution/device pixel ratio

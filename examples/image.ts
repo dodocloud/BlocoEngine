@@ -18,7 +18,7 @@ engine.then((val) => {
 
 
 //This `setup` function will run when the image has loaded
-function newGame(engine: DoDoEngine) {
+function newGame(engine: DodoEngine) {
 
     engine.init(document.getElementById("gameCanvas") as HTMLCanvasElement);
 
