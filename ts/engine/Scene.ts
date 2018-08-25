@@ -16,7 +16,6 @@ class Invocation {
 // Scene that keeps collection of all game
 // objects and calls draw and update upon them
 export default class Scene {
-    unitSize = 1; // unit size in px - all attributes are calculated against this size
     canvas: HTMLCanvasElement;
     canvasCtx: CanvasRenderingContext2D;
     pixiApp: PIXI.Application;
@@ -184,8 +183,8 @@ export default class Scene {
         this.root.scene = this;
 
         if (this.root.mesh != null) {
-            this.root.mesh.width = this.canvas.width / this.unitSize;
-            this.root.mesh.height = this.canvas.height / this.unitSize;
+            this.root.mesh.width = this.canvas.width / this.pixiApp.renderer.options.resolution;
+            this.root.mesh.height = this.canvas.height / this.pixiApp.renderer.options.resolution;
         }
 
         // create PixiJS container

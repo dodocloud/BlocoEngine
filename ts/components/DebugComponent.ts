@@ -1,9 +1,10 @@
 import Component from '../engine/Component';
+import GameObject from '../engine/GameObject';
 import {MSG_OBJECT_ADDED, MSG_OBJECT_REMOVED, MSG_ALL,
     STATE_DRAWABLE, STATE_INACTIVE, STATE_LISTENING, STATE_UPDATABLE} from '../engine/Constants';
 
 // Debugging component that renders the whole scene graph
-class DebugComponent extends Component {
+export default class DebugComponent extends Component {
     targetHtmlElement : HTMLElement = null;
     strWrapper: any = null;
 
@@ -38,24 +39,6 @@ class DebugComponent extends Component {
     }
 
 
-    _drawBoundingBox(ctx, node) {
-        if (node.hasState(STATE_DRAWABLE)) {
-            let bb = node.bbox;
-            let posX = bb.topLeftX * this.scene.unitSize;
-            let posY = bb.topLeftY * this.scene.unitSize;
-            let size = bb.getSize();
-
-            if (size.width != 0 && size.height != 0) {
-                ctx.rect(posX, posY, size.width * this.scene.unitSize, size.height * this.scene.unitSize);
-            }
-
-            ctx.rect(node.trans.absPosX * this.scene.unitSize, node.trans.absPosY * this.scene.unitSize, 10, 10);
-        }
-        for (let [id, child] of node.children) {
-            this._drawBoundingBox(ctx, child);
-        }
-    }
-
     _setPadding(padding) {
         let otp = "";
         for (let i = 0; i < padding; i++) {
@@ -64,12 +47,13 @@ class DebugComponent extends Component {
         return otp;
     }
 
-    _processNode(node, strWrapper, padding = 0) {
+    _processNode(node: GameObject, strWrapper, padding = 0) {
 
         // transform:
         strWrapper.str += "<strong><span style=\"color:red\">";
+        let bounds = node.mesh.getBounds();
         strWrapper.str = strWrapper.str.concat(this._setPadding(padding + 2) +
-            `rel:[${node.trans.posX.toFixed(2)},${node.trans.posY.toFixed(2)}]|abs:[${node.trans.absPosX.toFixed(2)},${node.trans.absPosY.toFixed(2)}]|rot: ${node.trans.rotation.toFixed(2)}|z: ${node.zIndex}` +
+            `rel:[${node.mesh.position.x.toFixed(2)},${node.mesh.position.y.toFixed(2)}]|abs:[${bounds.left.toFixed(2)},${bounds.top.toFixed(2)}]|rot: ${node.mesh.rotation.toFixed(2)}` +
             "<br>");
         strWrapper.str += "</span></strong>";
 

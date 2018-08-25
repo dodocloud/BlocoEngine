@@ -2,47 +2,49 @@ import Component from './Component';
 import Scene from './Scene'
 import Msg from './Msg';
 import Flags from './Flags';
-import {MSG_OBJECT_ADDED, MSG_OBJECT_REMOVED, MSG_ALL,
-STATE_DRAWABLE, STATE_INACTIVE, STATE_LISTENING, STATE_UPDATABLE} from './Constants';
+import {
+	MSG_OBJECT_ADDED, MSG_OBJECT_REMOVED, MSG_ALL,
+	STATE_DRAWABLE, STATE_INACTIVE, STATE_LISTENING, STATE_UPDATABLE
+} from './Constants';
 
 /**
  * Game object entity that aggregates generic attributes and components
  * Overall behavior of the game entity is defined by its components
  */
 export default class GameObject {
-    static idCounter = 0;
-    id = 0;
-    secondaryId = 0;
-    tag : string = null;
-    parent: GameObject = null;
-    components: Array<Component> = new Array();
-    mesh: PIXI.Container = null;
-    scene: Scene = null;
-    state: number = 0;
-    flags = new Flags();
+	static idCounter = 0;
+	id = 0;
+	secondaryId = 0;
+	tag: string = null;
+	parent: GameObject = null;
+	components: Array<Component> = new Array();
+	mesh: PIXI.Container = null;
+	scene: Scene = null;
+	state: number = 0;
+	flags = new Flags();
 
-    		/**
-         * List of attributes, mapped by their ids
-         * @type {Map<number, Any>}
-         */
-		attributes : Map<string, any> = new Map<string, any>();
+	/**
+ * List of attributes, mapped by their ids
+ * @type {Map<number, Any>}
+ */
+	attributes: Map<string, any> = new Map<string, any>();
 
-		/**
-         * Collection of children
-         * @type {Map<number, GameObject>}
-         */
-		children : Map<number, GameObject> = new Map<number, GameObject>();
+	/**
+	 * Collection of children
+	 * @type {Map<number, GameObject>}
+	 */
+	children: Map<number, GameObject> = new Map<number, GameObject>();
 
-		// temporary collection that keeps objects for removal -> objects should be removed
-		// at the end of the update cycle since we are sure there aren't any running components
-		_objectsToRemove : Array<GameObject> = new Array();
-		_componentsToRemove : Array<Component> = new Array();
-		// temporary collection that keeps objects for adding -> objects should be added
-		// at the end of the update cycle since we are sure there aren't any running components
-		_objectsToAdd : Array<GameObject> = new Array();
-        _componentsToAdd : Array<Component> = new Array();
-        
-	constructor(tag, secondaryId = -10000) {
+	// temporary collection that keeps objects for removal -> objects should be removed
+	// at the end of the update cycle since we are sure there aren't any running components
+	_objectsToRemove: Array<GameObject> = new Array();
+	_componentsToRemove: Array<Component> = new Array();
+	// temporary collection that keeps objects for adding -> objects should be added
+	// at the end of the update cycle since we are sure there aren't any running components
+	_objectsToAdd: Array<GameObject> = new Array();
+	_componentsToAdd: Array<Component> = new Array();
+
+	constructor(tag, secondaryId = -10000, mesh : PIXI.Container = null) {
 		/**
          * Primary identifier, set automatically
          * @type {number}
@@ -63,7 +65,14 @@ export default class GameObject {
          * @type {Scene}
          */
 		this.scene = null;
-		
+
+		this.mesh = mesh;
+
+		if(this.mesh == null){
+			// create a default mesh
+			this.mesh = new PIXI.Container();
+		}
+
 		/**
          * Object states
          * @type {number}
@@ -73,7 +82,7 @@ export default class GameObject {
 
 	submitChanges(recursively = false) {
 
-        // TODO update pixi transform
+		// TODO update pixi transform
 		this._addPendingGameObjects(!recursively);
 
 		// add game objects first 
@@ -97,31 +106,31 @@ export default class GameObject {
 		}
 	}
 
-	addState(state : number) {
+	addState(state: number) {
 		this.state |= state;
 	}
 
-	hasState(state : number) {
+	hasState(state: number) {
 		return (this.state & state) == state;
 	}
 
-	removeState(state : number) {
+	removeState(state: number) {
 		this.state &= (1 << state / 2); // todo fix this
 	}
 
-	hasFlag(flag : number) {
+	hasFlag(flag: number) {
 		return this.flags.hasFlag(flag);
 	}
 
-	setFlag(flag : number) {
+	setFlag(flag: number) {
 		this.flags.setFlag(flag);
 	}
 
-	resetFlag(flag : number) {
+	resetFlag(flag: number) {
 		this.flags.resetFlag(flag);
 	}
 
-	switchFlag(flag1 : number, flag2 : number) {
+	switchFlag(flag1: number, flag2: number) {
 		this.flags.switchFlag(flag1, flag2);
 	}
 
@@ -138,7 +147,7 @@ export default class GameObject {
 	 * Sends message to all components in the scope of this object
 	 * @param {Msg} msg message to sent 
 	 */
-	sendmsgToComponents(msg : Msg, applyToChildren = false) {
+	sendmsgToComponents(msg: Msg, applyToChildren = false) {
 		// todo optimize and send only to subscribers!
 		for (let component of this.components) {
 			if (component.owner.hasState(STATE_LISTENING)) {
@@ -147,46 +156,46 @@ export default class GameObject {
 		}
 
 		if (applyToChildren) {
-			for (let [key, val]  of this.children) {
+			for (let [key, val] of this.children) {
 				val.sendmsgToComponents(msg, applyToChildren);
 			}
 		}
 	}
 
 	// adds a new game object into the scene
-	addGameObject(obj : GameObject) {
+	addGameObject(obj: GameObject) {
 		obj.scene = this.scene;
 		obj.parent = this;
 		this._objectsToAdd.push(obj);
 	}
 
 	// removes given game object as soon as the update cycle finishes
-	removeGameObject(obj : GameObject) {
+	removeGameObject(obj: GameObject) {
 		obj.state = STATE_INACTIVE;
 		this._objectsToRemove.push(obj);
 	}
 
-	addComponent(component : Component) {
+	addComponent(component: Component) {
 		component.owner = this;
 		component.scene = this.scene;
 		this._componentsToAdd.push(component);
 	}
 
-	removeComponent(component : Component) {
+	removeComponent(component: Component) {
 		this._componentsToRemove.push(component);
 	}
 
-	removeComponentByName(name : string){
-		for(let cmp of this.components){
-			if(cmp.constructor.name == name){
+	removeComponentByName(name: string) {
+		for (let cmp of this.components) {
+			if (cmp.constructor.name == name) {
 				this.removeComponent(cmp);
 				return true;
 			}
 		}
 		// try also the pending collection
 		let cntr = 0;
-		for(let cmp of this._componentsToAdd){
-			if(cmp.constructor.name == name){
+		for (let cmp of this._componentsToAdd) {
+			if (cmp.constructor.name == name) {
 				this._componentsToAdd.splice(cntr);
 				return true;
 			}
@@ -201,7 +210,7 @@ export default class GameObject {
 		}
 	}
 
-	findComponent(name : string) {
+	findComponent(name: string) {
 		for (let cmp of this.components) {
 			if (cmp.constructor.name == name) return cmp;
 		}
@@ -212,21 +221,21 @@ export default class GameObject {
 	}
 
 	// adds a new attribute
-	addAttribute(key : string, val : any) {
+	addAttribute(key: string, val: any) {
 		this.attributes.set(key, val);
 	}
 
 	// gets attribute by key
-	getAttribute(key : string) : any {
+	getAttribute(key: string): any {
 		return this.attributes.get(key);
 	}
 
 	// removes an existing attribute
-	removeAttribute(key : string) {
+	removeAttribute(key: string) {
 		this.attributes.delete(key);
 	}
 
-	update(delta : number, absolute : number) {
+	update(delta: number, absolute: number) {
 		if (this.hasState(STATE_UPDATABLE)) {
 			this.submitChanges(false);
 
@@ -240,15 +249,15 @@ export default class GameObject {
 		}
 	}
 
-	draw(ctx : CanvasRenderingContext2D) {
+	draw(ctx: CanvasRenderingContext2D) {
 		if (this.hasState(STATE_DRAWABLE)) {
 			for (let component of this.components) {
 				component.draw(ctx)
 			}
 		}
 		// children are drawn via scene
-    }
-    
+	}
+
 	// adds pending objects
 	_addPendingGameObjects(submitChanges = true) {
 		for (let obj of this._objectsToAdd) {
@@ -256,8 +265,8 @@ export default class GameObject {
 			// the parent might not had its scene assigned
 			obj.scene = this.scene;
 			obj.parent = this;
-            this.children.set(obj.id, obj);
-            this.mesh.addChild(obj.mesh);
+			this.children.set(obj.id, obj);
+			this.mesh.addChild(obj.mesh);
 			this.scene._addGameObject(obj);
 
 			if (submitChanges) {

@@ -1,7 +1,7 @@
 {
   "scripts": {
-    "start": "parcel examples/pixi.html --out-dir www --open",
-    "test": "parcel examples/tests.html --out-dir www --open"
+    "start": "parcel examples/*.html --out-dir www --open",
+    "tests": "parcel examples/tests.html --out-dir www --open"
   },
   "devDependencies": {
     "parcel-bundler": "^1.8.1",

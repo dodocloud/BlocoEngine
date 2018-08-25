@@ -1,22 +1,22 @@
 import Scene from './Scene';
 import * as PIXI from 'pixi.js'
 
-export default class DodoEngine {
+class DodoEngine {
     app: PIXI.Application = null;
     lastTime = 0;
     gameTime = 0;
     scene: Scene = null;
     ticker: PIXI.ticker.Ticker = null;
 
-    init(canvas: HTMLCanvasElement) {
+    init(canvas: HTMLCanvasElement, resolution: number = 1) {
         this.app = new PIXI.Application({
             width: canvas.width,
             height: canvas.height,
             antialias: true,
             view: canvas,
-            resolution: 1 // resolution/device pixel ratio
+            resolution: resolution // resolution/device pixel ratio
         });
-
+        
         this.scene = new Scene(canvas, this.app);
 
         this.ticker = PIXI.ticker.shared;
@@ -36,6 +36,8 @@ export default class DodoEngine {
 
         // draw
         this.ticker.update(this.gameTime);
-        requestAnimationFrame(this.loop);
+        requestAnimationFrame((time) => this.loop(time));
     }
 }
+
+export default new DodoEngine();

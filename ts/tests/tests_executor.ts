@@ -3,14 +3,14 @@ import GameObject from '../engine/GameObject';
 import Scene from '../engine/Scene';
 import Executor from '../components/Executor';
 import { tests, assert, fail, eq, assertEquals } from '../utils/tinytest';
+import {RotationAnim, MovingAnim} from './testcomponents';
 
 export default function runTests() {
 
     // init component microengine
     let canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
-    var scene = new Scene(canvas, new PIXI.Application());
-    scene.unitSize = 100;
-
+    var scene = new Scene(canvas, new PIXI.Application({resolution: 100}));
+    
     tests({
         'Executor execute': function () {
             scene.clearScene();
@@ -416,7 +416,8 @@ export default function runTests() {
 
             scene.update(1, 1);
             assert(obj.findComponent("RotationAnim") != null, "Rotation anim is missing");
-            scene.update(1, 2);
+            scene.update(1, 2); // will be added into a collection for removal
+            scene.update(1, 3); // will be removed
             assert(obj.findComponent("RotationAnim") == null, "Rotation anim should be deleted");
         },
 
@@ -436,7 +437,9 @@ export default function runTests() {
 
             scene.update(1, 1); // will add executor to the game
             assert(scene.findFirstObjectByTag("testObject2") != null, "The object shouldn't be deleted yet");
-            scene.update(1.5, 2.5);
+            scene.update(1.5, 2.5); // will add the object into a collection for removal
+            assert(scene.findFirstObjectByTag("testObject2") != null, "The object shouldn't be deleted yet");
+            scene.update(1.5, 3); // will remove the object
             assert(scene.findFirstObjectByTag("testObject2") == null, "The object should have been already deleted");
         },
 
@@ -456,7 +459,9 @@ export default function runTests() {
 
             scene.update(1, 1); // will add executor to the game
             assert(scene.findFirstObjectByTag("testObject2") != null, "The object shouldn't be deleted yet");
-            scene.update(1.5, 2.5);
+            scene.update(1.5, 2.5); // will add the object into a collection for removal
+            assert(scene.findFirstObjectByTag("testObject2") != null, "The object shouldn't be deleted yet");
+            scene.update(1.5, 3); // will remove the object
             assert(scene.findFirstObjectByTag("testObject2") == null, "The object should have been already deleted");
         },
 
@@ -511,23 +516,3 @@ export default function runTests() {
     });
 }
 
-class RotationAnim extends Component {
-    update(delta, absolute) {
-        this.owner.mesh.rotation += delta;
-    }
-}
-
-class MovingAnim extends Component {
-    initPosX = 0;
-    initPosY = 0;
-    radius = 1;
-    oninit() {
-        this.initPosX = this.owner.mesh.position.x;
-        this.initPosY = this.owner.mesh.position.y;
-    }
-
-    update(delta, absolute) {
-        this.owner.mesh.position.set(this.initPosX + this.radius * Math.cos(absolute),
-            this.initPosY + this.radius * Math.sin(absolute));
-    }
-}
