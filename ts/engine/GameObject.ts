@@ -1,8 +1,12 @@
+import Component from './Component';
+import Scene from './Scene'
+import Msg from './Msg';
+
 /**
  * Game object entity that aggregates generic attributes and components
  * Overall behavior of the game entity is defined by its components
  */
-class GameObject {
+export default class GameObject {
     static idCounter = 0;
     id = 0;
     secondaryId = 0;

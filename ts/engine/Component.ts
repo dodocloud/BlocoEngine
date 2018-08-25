@@ -1,5 +1,10 @@
+import GameObject from './GameObject';
+import Msg from './Msg';
+import Scene from './Scene';
+
+
 // Component that defines functional behavior of the game object (or its part)
-class Component {
+export default class Component {
     static idCounter = 0;
     id = 0;
     owner: GameObject = null;
@@ -30,7 +35,7 @@ class Component {
 	}
 
 	// sends message to all subscribers
-	sendmsg(action : string, data : any) {
+	sendmsg(action : string, data : any = null) {
 		this.scene._sendmsg(new Msg(action, this, this.owner, data));
 	}
 

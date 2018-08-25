@@ -1,7 +1,8 @@
-
+import Component from './Component';
+import GameObject from './GameObject';
 
 // Message entity that keeps custom data, a source object and component
-class Msg {
+export default class Msg {
     action: string = null;
     component: Component = null;
     gameObject: GameObject = null;

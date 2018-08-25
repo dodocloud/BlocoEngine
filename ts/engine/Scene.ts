@@ -1,3 +1,6 @@
+import GameObject from './GameObject';
+import Msg from './Msg';
+import Component from './Component';
 
 type updateEventFunc = (param1: number, param2: number) => void;
 
@@ -9,7 +12,7 @@ class Invocation {
 
 // Scene that keeps collection of all game
 // objects and calls draw and update upon them
-class Scene {
+export default class Scene {
 
     canvas: HTMLCanvasElement;
     canvasCtx: CanvasRenderingContext2D;
@@ -262,7 +265,7 @@ class Scene {
      * @param {string|number} action action key 
      * @param {data} data any data 
      */
-    sendmsg(action, data) {
+    sendmsg(action, data = null) {
         this._sendmsg(new Msg(action, null, null, data));
     }
 

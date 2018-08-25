@@ -1,6 +1,9 @@
+type Testable = { [P in keyof Action<void>]: Action<void>[P] }
+
+
 const TinyTest = {
 
-    run: function(tests) {
+    run: function(tests: Testable) {
         let failures = 0;
         for (let testName in tests) {
             let testAction = tests[testName];
@@ -20,23 +23,23 @@ const TinyTest = {
         }, 0);
     },
 
-    fail: function(msg) {
+    fail: function(msg: string) {
         throw new Error('fail(): ' + msg);
     },
 
-    assert: function(value, msg) {
+    assert: function(value: boolean, msg: string) {
         if (!value) {
             throw new Error('assert(): ' + msg);
         }
     },
 
-    assertEquals: function(expected, actual) {
+    assertEquals: function(expected: any, actual: any) {
         if (expected != actual) {
             throw new Error('assertEquals() "' + expected + '" != "' + actual + '"');
         }
     },
 
-    assertStrictEquals: function(expected, actual) {
+    assertStrictEquals: function(expected: any, actual: any) {
         if (expected !== actual) {
             throw new Error('assertStrictEquals() "' + expected + '" !== "' + actual + '"');
         }

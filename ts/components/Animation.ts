@@ -1,3 +1,4 @@
+import Component from '../engine/Component'
 
 var Interpolation = {
     linear : null,
@@ -12,7 +13,7 @@ Interpolation.easeinout = (current, start, length) => {
 }
 
 
-class BaseAnimation extends Component {
+export class BaseAnimation extends Component {
     duration = 0;
     goBack = false;
     goingBack = false;
@@ -69,7 +70,7 @@ class BaseAnimation extends Component {
     }
 }
 
-class TranslateAnimation extends BaseAnimation {
+export class TranslateAnimation extends BaseAnimation {
     srcPosX = 0;
     srcPosY = 0;
     targetPosX = 0;
@@ -100,7 +101,7 @@ class TranslateAnimation extends BaseAnimation {
     }
 }
 
-class RotationAnimation extends BaseAnimation {
+export class RotationAnimation extends BaseAnimation {
     srcRot = 0;
     targetRot = 0;
     

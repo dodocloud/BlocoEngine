@@ -1,3 +1,6 @@
+import GameObject from '../engine/GameObject';
+import Component from '../engine/Component';
+
 class GameObjectBuilder {
     gameObj: GameObject = null;
     isGlobal = false;

@@ -1,3 +1,7 @@
+import GameObject from '../engine/GameObject';
+import Msg from '../engine/Msg';
+import Component from '../engine/Component';
+
 const CMD_BEGIN_REPEAT = 1;
 const CMD_END_REPEAT = 2;
 const CMD_EXECUTE = 3;
@@ -24,25 +28,28 @@ const CMD_REMOVE_PREVIOUS = 21;
  * Simple stack
  */
 class Stack {
+    topNode: ExNode = null;
+    size = 0;
+
     constructor() {
-        this.top = null;
+        this.topNode = null;
         this.size = 0;
     }
 
     /**
      * Pushes a new node onto the stack
      */
-    push(node) {
-        this.top = node;
+    push(node: ExNode) {
+        this.topNode = node;
         this.size += 1;
     }
 
     /**
      * Pops the current node from the stack
      */
-    pop() {
-        let temp = this.top;
-        this.top = this.top.previous;
+    pop() : ExNode {
+        let temp = this.topNode;
+        this.topNode = this.topNode.previous;
         this.size -= 1;
         return temp;
     }
@@ -50,13 +57,24 @@ class Stack {
     /**
      * Returns the node on the top
      */
-    top() {
-        return this.top;
+    top() : ExNode {
+        return this.topNode;
     }
 }
 
 class ExNode {
-    constructor(key, param1 = null, param2 = null, param3 = null) {
+    key = 0;
+    param1: any = null;
+    param2: any = null;
+    param3: any = null;
+    param1A: any = null;
+    param2A: any = null;
+    param3A: any = null;
+    cached: boolean = false;
+    next: ExNode = null;
+    previous: ExNode = null;
+
+    constructor(key: number, param1 : any = null, param2 : any = null, param3 : any = null) {
         this.key = key;
         this.param1 = param1;
         this.param2 = param2;
@@ -65,11 +83,6 @@ class ExNode {
         this.param1A = null;
         this.param2A = null;
         this.param3A = null;
-
-        this.cached = false;
-
-        this.next = null;
-        this.previous = null;
     }
 
     cacheParams() {
@@ -132,36 +145,32 @@ class ExNode {
 /**
  * Component that executes a chain of commands during the update loop
  */
-class ExecutorComponent extends Component {
-    constructor() {
-        super();
-        this.scopeStack = new Stack();
-        // linked list
-        this.current = null;
-        this.head = null;
-        this.tail = null;
-
-        // custom parameters
-        this.helpParam = null;
-        this.helpParam2 = null;
-    }
+export default class ExecutorComponent extends Component {
+    scopeStack = new Stack();
+    current: ExNode = null;
+    // linked list
+    head: ExNode = null;
+    tail: ExNode = null;
+    // custom parameters
+    helpParam: any = null;
+    helpParam2: any = null;
 
     /**
      * Repeats the following part of the chain until endRepeat()
      * @param {number|function} num number of repetitions, 0 for infinite loop; or function that returns that number
      */
-    beginRepeat(num) {
-        if(typeof(num) !== `number` && typeof(num) !== `function`){
+    beginRepeat(param: number | Func<void, number>) : ExecutorComponent {
+        if(typeof(param) !== `number` && typeof(param) !== `function`){
             throw Error("Invalid type. Expected number or function");
         }
-        this._enqueue(CMD_BEGIN_REPEAT, num, num == 0);
+        this._enqueue(CMD_BEGIN_REPEAT, param, param == 0);
         return this;
     }
 
     /**
      * Enclosing element for beginRepeat() command
      */
-    endRepeat() {
+    endRepeat() : ExecutorComponent {
         this._enqueue(CMD_END_REPEAT);
         return this;
     }
@@ -170,7 +179,7 @@ class ExecutorComponent extends Component {
      * Executes a closure
      * @param {action} func function to execute 
      */
-    execute(func) {
+    execute(func: Action<Component>) : ExecutorComponent {
         if(typeof(func) !== `function`){
             throw Error("Invalid type. Expected function");
         }
@@ -183,7 +192,7 @@ class ExecutorComponent extends Component {
      * till the func() keeps returning true 
      * @param {function} func function that returns either true or false
      */
-    beginWhile(func) {
+    beginWhile(func: Func<void, boolean>) : ExecutorComponent {
         if(typeof(func) !== `function`){
             throw Error("Invalid type. Expected function");
         }
@@ -194,7 +203,7 @@ class ExecutorComponent extends Component {
     /**
      * Enclosing command for beginWhile()
      */
-    endWhile() {
+    endWhile() : ExecutorComponent {
         this._enqueue(CMD_END_WHILE);
         return this;
     }
@@ -203,7 +212,7 @@ class ExecutorComponent extends Component {
      * Starts an infinite loop that will repeat every num second  
      * @param {number|function} num number of seconds to wait or function that returns that number
      */
-    beginInterval(num) {
+    beginInterval(num : number | Func<void, number>) : ExecutorComponent {
         if(typeof(num) !== `number` && typeof(num) !== `function`){
             throw Error("Invalid type. Expected number or function");
         }
@@ -214,7 +223,7 @@ class ExecutorComponent extends Component {
     /**
      * Enclosing command for beginInterval()
      */
-    endInterval() {
+    endInterval() : ExecutorComponent {
         this._enqueue(CMD_END_INTERVAL);
         return this;
     }
@@ -224,7 +233,7 @@ class ExecutorComponent extends Component {
      * behind the 'else' element or behind the 'endIf' element, if the condition is not met
      * @param {function} func function that returns either true or false 
      */
-    beginIf(func) {
+    beginIf(func : Func<void, boolean>) : ExecutorComponent {
         if(typeof(func) !== `function`){
             throw Error("Invalid type. Expected function");
         }
@@ -236,7 +245,7 @@ class ExecutorComponent extends Component {
      * Defines a set of commands that are to be executed if the condition of the current
      * beginIf() command is not met
      */
-    else() {
+    else() : ExecutorComponent {
         this._enqueue(CMD_ELSE);
         return this;
     }
@@ -244,7 +253,7 @@ class ExecutorComponent extends Component {
     /**
      * Enclosing command for beginIf()
      */
-    endIf() {
+    endIf() : ExecutorComponent {
         this._enqueue(CMD_END_IF);
         return this;
     }
@@ -254,7 +263,7 @@ class ExecutorComponent extends Component {
      * @param {Component|function} component component or function that returns a component
      * @param {GameObject|function} gameObj game object or function that returns a game object 
      */
-    addComponent(component, gameObj = null) {
+    addComponent(component : Component | Func<void, Component>, gameObj : GameObject | Func<void, GameObject> = null) : ExecutorComponent {
         if(typeof(component) == `object` && (!(component instanceof Component)) ||
         (gameObj != null && typeof(gameObj) == `object` && !(gameObj instanceof GameObject))){
             throw Error("Wrong type. Expected Component and GameObject");
@@ -269,7 +278,7 @@ class ExecutorComponent extends Component {
      * @param {Component|function} component component or function that returns a component 
      * @param {GameObject|function} gameObj game object or function that returns a game object 
      */
-    addComponentAndWait(component, gameObj) {
+    addComponentAndWait(component : Component | Func<void, Component>, gameObj : GameObject | Func<void, GameObject> = null) : ExecutorComponent {
         if(typeof(component) == `object` && (!(component instanceof Component)) ||
         (gameObj != null && typeof(gameObj) == `object` && !(gameObj instanceof GameObject))){
             throw Error("Wrong type. Expected Component and GameObject");
@@ -282,7 +291,7 @@ class ExecutorComponent extends Component {
      * Waits given amount of seconds
      * @param {time|function} time number of seconds to wait; or function that returns this number 
      */
-    waitTime(time) {
+    waitTime(time : number | Func<void, number>) : ExecutorComponent {
         if(typeof(time) !== `number` && typeof(time) !== `function`){
             throw Error("Invalid type. Expected number or function");
         }
@@ -294,7 +303,7 @@ class ExecutorComponent extends Component {
      * Waits until given component isn't finished
      * @param {Component|function} component or function that returns this component 
      */
-    waitForFinish(component) {
+    waitForFinish(component : Component | Func<void, Component>) : ExecutorComponent {
         if(typeof(component) == `object` && (!(component instanceof Component))){
             throw Error("Wrong type. Expected Component");
         }
@@ -306,7 +315,7 @@ class ExecutorComponent extends Component {
      * Waits until given function keeps returning true
      * @param {Function} func 
      */
-    waitUntil(func) {
+    waitUntil(func : Func<void, boolean>) : ExecutorComponent {
         if(typeof(func) !== `function`){
             throw Error("Invalid type. Expected function");
         }
@@ -318,7 +327,7 @@ class ExecutorComponent extends Component {
      * Waits given number of iterations of update loop
      * @param {number} num number of frames 
      */
-    waitFrames(num) {
+    waitFrames(num: number) : ExecutorComponent {
         if(typeof(num) !== `number`){
             throw Error("Invalid type. Expected number");
         }
@@ -330,7 +339,7 @@ class ExecutorComponent extends Component {
      * Waits until a message with given key isn't sent
      * @param {String} msg message key 
      */
-    waitForMessage(msg) {
+    waitForMessage(msg : string) : ExecutorComponent {
         if(typeof(msg) !== `string`){
             throw Error("Invalid type. Expected string");
         }
@@ -340,13 +349,12 @@ class ExecutorComponent extends Component {
 
     /**
      * Removes component from given game object (or the owner if null)
-     * @param {String} cmp name of the component 
+     * @param {String} cmp name of the component or the component itself
      * @param {GameObject} gameObj 
      */
-    removeComponent(cmp, gameObj = null) {
-        if(typeof(cmp) == `object` && (!(cmp instanceof Component)) ||
-        (gameObj != null && typeof(gameObj) == `object` && !(gameObj instanceof GameObject))){
-            throw Error("Wrong type. Expected Component and GameObject");
+    removeComponent(cmp : string, gameObj : GameObject = null) : ExecutorComponent {
+        if((gameObj != null && typeof(gameObj) == `object` && !(gameObj instanceof GameObject))){
+            throw Error("Wrong type. Expected GameObject");
         }
         this._enqueue(CMD_REMOVE_COMPONENT, cmp, gameObj);
         return this;
@@ -356,7 +364,7 @@ class ExecutorComponent extends Component {
      * Removes a game object with given tag
      * @param {String} tag 
      */
-    removeGameObjectByTag(tag) {
+    removeGameObjectByTag(tag: string) : ExecutorComponent {
         if(typeof(tag) !== `string`){
             throw Error("Invalid type. Expected string");
         }
@@ -368,7 +376,7 @@ class ExecutorComponent extends Component {
      * Removes given game object
      * @param {GameObject} obj 
      */
-    removeGameObject(obj) {
+    removeGameObject(obj: GameObject) : ExecutorComponent {
         if(typeof(obj) == `object` && (!(obj instanceof GameObject))){
             throw Error("Wrong type. Expected GameObject");
         }
@@ -379,16 +387,16 @@ class ExecutorComponent extends Component {
     /**
      * Removes previous node from the chain
      */
-    removePrevious() {
+    removePrevious() : ExecutorComponent {
         this._enqueue(CMD_REMOVE_PREVIOUS);
         return this;
     }
 
-    onmessage(msg) {
+    onmessage(msg : Msg) {
         this.helpParam2 = msg.action;
     }
 
-    update(delta, absolute) {
+    update(delta: number, absolute: number) {
         if (this.current == null) {
             this.current = this._dequeue();
         }
@@ -603,7 +611,7 @@ class ExecutorComponent extends Component {
         }
     }
 
-    _enqueue(key, param1 = null, param2 = null) {
+    _enqueue(key: number, param1:any = null, param2:any = null) {
         var node = new ExNode(key, param1, param2);
 
         if (this.current != null && this.current != this.head) {
@@ -633,7 +641,7 @@ class ExecutorComponent extends Component {
      * Dequeues a new node
      *  @returns {ExNode} 
      */
-    _dequeue() {
+    _dequeue() : ExNode {
         if (this.current == null || this.current.next == null) {
             return null;
         } else {
@@ -646,7 +654,7 @@ class ExecutorComponent extends Component {
         this.current = this.current.next;
     }
 
-    _gotoNextImmediately(delta, absolute) {
+    _gotoNextImmediately(delta: number, absolute: number) {
         this.current = this.current.next;
         this.update(delta, absolute);
     }

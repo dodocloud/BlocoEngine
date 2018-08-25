@@ -1,3 +1,9 @@
+import Component from '../engine/Component';
+import GameObject from '../engine/GameObject';
+import Scene from '../engine/Scene';
+import Executor from '../components/Executor'
+
+
 function runTests() {
 
     // unit size is 100 px!
@@ -13,7 +19,7 @@ function runTests() {
             scene.addGlobalGameObject(obj);
             let param = 0;
 
-            let executor = new ExecutorComponent()
+            let executor = new Executor()
                 .execute(() => param = 1)
                 .execute(() => assert(param == 1, "Wrong parameter value"));
 
@@ -32,7 +38,7 @@ function runTests() {
             let repeatCounter1 = 0;
             let repeatCounter2 = 0;
 
-            let executor = new ExecutorComponent()
+            let executor = new Executor()
                 .beginRepeat(3) // via literal
                 .execute(() => repeatCounter1++)
                 .endRepeat()
@@ -58,7 +64,7 @@ function runTests() {
             let param = 3;
             let execCounter = 0;
 
-            let executor = new ExecutorComponent()
+            let executor = new Executor()
                 .beginWhile(() => param > 0)
                 .execute(() => param--)
                 .execute(() => execCounter++)
@@ -82,12 +88,12 @@ function runTests() {
             let intervalCntr = 0;
             let counter = 0;
 
-            let executor = new ExecutorComponent()
+            let executor = new Executor()
                 .beginInterval(3) // via literal
                 .execute(() => {
                     if (intervalCntr == 0) {
                         // first loop -> check if the time matches
-                        assert(parseInt(counter) == 3, "Method executed in a different time than expected");
+                        assert(Math.floor(counter) == 3, "Method executed in a different time than expected");
                     }
                 })
                 .execute(() => intervalCntr++)
@@ -114,18 +120,18 @@ function runTests() {
             let intervalCntr = 0;
             let counter = 0;
 
-            let executor = new ExecutorComponent()
+            let executor = new Executor()
                 .beginInterval(() => currentInterval) // via function
                 .execute(() => {
                     switch (intervalCntr) {
                         case 0:
-                            assert(parseInt(counter) == 4, "Method executed in a different time than expected");
+                            assert(Math.floor(counter) == 4, "Method executed in a different time than expected");
                             break;
                         case 1:
-                            assert(parseInt(counter) == 7, "Method executed in a different time than expected");
+                            assert(Math.floor(counter) == 7, "Method executed in a different time than expected");
                             break;
                         case 2:
-                            assert(parseInt(counter) == 9, "Method executed in a different time than expected");
+                            assert(Math.floor(counter) == 9, "Method executed in a different time than expected");
                             break;
                     }
                 })
@@ -157,7 +163,7 @@ function runTests() {
             let prom2 = 0;
             let prom3 = 0;
 
-            let executor = new ExecutorComponent()
+            let executor = new Executor()
                 .waitTime(3) // execute with a delay				
                 .beginIf(() => true)
                 .execute(() => prom++)
@@ -223,7 +229,7 @@ function runTests() {
             scene.addGlobalGameObject(obj);
             let counter = 0;
 
-            let executor = new ExecutorComponent()
+            let executor = new Executor()
                 .addComponent(new RotationAnim()) // directly
                 .addComponent(() => new MovingAnim()) // by function
 
@@ -246,7 +252,7 @@ function runTests() {
             let anim = new RotationAnim();
             let anim2 = new MovingAnim();
 
-            let executor = new ExecutorComponent()
+            let executor = new Executor()
                 .addComponentAndWait(anim) // directly
                 .addComponentAndWait(anim2) // by function
 
@@ -260,7 +266,7 @@ function runTests() {
             scene.update(0.1, 0.2);
             assert(obj.findComponent(MovingAnim.constructor.name) == null, "MovingAnim should have been deleted");
             scene.update(0.1, 0.2);
-            assert(obj.findComponent(ExecutorComponent.constructor.name) == null, "ExecutorComponent should have been deleted");
+            assert(obj.findComponent(Executor.constructor.name) == null, "ExecutorComponent should have been deleted");
 
         },
 
@@ -271,7 +277,7 @@ function runTests() {
 
             let prom = 0;
 
-            let executor = new ExecutorComponent()
+            let executor = new Executor()
                 .waitTime(0.8) // directly
                 .execute(() => prom++)
                 .waitTime(() => 1.5) // by function
@@ -297,7 +303,7 @@ function runTests() {
             scene.addGlobalGameObject(obj);
             let anim = new RotationAnim();
             let prom = 0;
-            let executor = new ExecutorComponent()
+            let executor = new Executor()
                 .addComponent(anim)
                 .waitForFinish(anim)
                 .execute(() => prom++);
@@ -323,7 +329,7 @@ function runTests() {
             scene.addGlobalGameObject(obj);
             let anim = new RotationAnim();
             let prom = 0;
-            let executor = new ExecutorComponent()
+            let executor = new Executor()
                 .addComponent(anim)
                 .waitUntil(() => !anim.isFinished)
                 .execute(() => prom++);
@@ -346,7 +352,7 @@ function runTests() {
             let obj = new GameObject("testObject");
             scene.addGlobalGameObject(obj);
             let prom = 0;
-            let executor = new ExecutorComponent()
+            let executor = new Executor()
                 .waitFrames(5)
                 .execute(() => prom++);
 
@@ -374,7 +380,7 @@ function runTests() {
             let counter = 0;
             let prom = 0;
 
-            let executor = new ExecutorComponent()
+            let executor = new Executor()
                 .waitForMessage("MOJO")
                 .execute(() => prom++)
                 .waitForMessage("DOJO")
@@ -402,7 +408,7 @@ function runTests() {
             scene.addGlobalGameObject(obj);
             let counter = 0;
 
-            let executor = new ExecutorComponent()
+            let executor = new Executor()
                 .addComponent(new RotationAnim())
                 .waitTime(0.5)
                 .removeComponent("RotationAnim");
@@ -423,7 +429,7 @@ function runTests() {
             scene.addGlobalGameObject(obj2);
             let counter = 0;
 
-            let executor = new ExecutorComponent()
+            let executor = new Executor()
                 .waitTime(1)
                 .removeGameObjectByTag("testObject2");
 
@@ -443,7 +449,7 @@ function runTests() {
             scene.addGlobalGameObject(obj2);
             let counter = 0;
 
-            let executor = new ExecutorComponent()
+            let executor = new Executor()
                 .waitTime(1)
                 .removeGameObject(obj2);
 
@@ -461,7 +467,7 @@ function runTests() {
             scene.addGlobalGameObject(obj);
             let counter = 0;
             let prom = 0;
-            let executor = new ExecutorComponent()
+            let executor = new Executor()
                 .beginRepeat(3)
                 .execute(() => prom++)
                 .execute(() => prom++)
@@ -486,7 +492,7 @@ function runTests() {
             scene.addGlobalGameObject(obj);
             let prom = 0;
 
-            let executor = new ExecutorComponent()
+            let executor = new Executor()
                 .execute(() => prom++)
                 .execute(() => prom++)
                 .waitFrames(0)
@@ -508,20 +514,21 @@ function runTests() {
 
 class RotationAnim extends Component {
     update(delta, absolute) {
-        this.owner.trans.rotation += delta;
+        this.owner.mesh.rotation += delta;
     }
 }
 
 class MovingAnim extends Component {
+    initPosX = 0;
+    initPosY = 0;
+    radius = 1;
     oninit() {
-        this.initPosX = this.owner.trans.posX;
-        this.initPosY = this.owner.trans.posY;
-        this.radius = 1;
-
+        this.initPosX = this.owner.mesh.position.x;
+        this.initPosY = this.owner.mesh.position.y;
     }
 
     update(delta, absolute) {
-        this.owner.trans.setPosition(this.initPosX + this.radius * Math.cos(absolute),
-            this.initPosY + this.radius * Math.sin(absolute));
+        this.owner.mesh.position.set(this.initPosX + this.radius * Math.cos(absolute), 
+        this.initPosY + this.radius * Math.sin(absolute));
     }
 }
