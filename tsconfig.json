@@ -6,7 +6,7 @@
       "outDir": "./www",    
       "downlevelIteration": true // this will enable us to iterate over map
     },
-    "include": ["./ts/**/*"],
+    "include": ["./ts/**/*", "./examples/*"],
     "exclude": [
       "node_modules"
     ]

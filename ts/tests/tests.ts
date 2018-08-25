@@ -1,16 +1,15 @@
 import Component from '../engine/Component';
 import GameObject from '../engine/GameObject';
 import Scene from '../engine/Scene';
-import Executor from '../components/Executor'
+import Executor from '../components/Executor';
+import { tests, assert, fail, eq, assertEquals } from '../utils/tinytest';
 
+export default function runTests() {
 
-function runTests() {
-
-    // unit size is 100 px!
-    UNIT_SIZE = 100;
     // init component microengine
-    let canvas = document.getElementById('gameCanvas');
-    var scene = new Scene(canvas);
+    let canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
+    var scene = new Scene(canvas, new PIXI.Application());
+    scene.unitSize = 100;
 
     tests({
         'Executor execute': function () {
@@ -437,7 +436,7 @@ function runTests() {
 
             scene.update(1, 1); // will add executor to the game
             assert(scene.findFirstObjectByTag("testObject2") != null, "The object shouldn't be deleted yet");
-            scene.update(1.5, 2.5); 
+            scene.update(1.5, 2.5);
             assert(scene.findFirstObjectByTag("testObject2") == null, "The object should have been already deleted");
         },
 
@@ -457,7 +456,7 @@ function runTests() {
 
             scene.update(1, 1); // will add executor to the game
             assert(scene.findFirstObjectByTag("testObject2") != null, "The object shouldn't be deleted yet");
-            scene.update(1.5, 2.5); 
+            scene.update(1.5, 2.5);
             assert(scene.findFirstObjectByTag("testObject2") == null, "The object should have been already deleted");
         },
 
@@ -474,7 +473,7 @@ function runTests() {
                 .execute(() => prom++)
                 .removePrevious() // will remove one execute() with every loop -> 3+2+1 run
                 .endRepeat()
-                
+
 
             obj.addComponent(executor);
 
@@ -483,7 +482,7 @@ function runTests() {
                 counter += 0.1;
             }
 
-            assert(prom == 6, "Unexpected value of the variable prom, expected 6, got "+prom);
+            assert(prom == 6, "Unexpected value of the variable prom, expected 6, got " + prom);
         },
 
         'Executor instant test': function () {
@@ -498,14 +497,14 @@ function runTests() {
                 .waitFrames(0)
                 .waitTime(0)
                 .beginIf(() => true)
-                  .execute(() => prom++)
+                .execute(() => prom++)
                 .endIf()
 
             obj.addComponent(executor);
 
             scene.update(1, 1); // will add executor to the game
             scene.update(1, 2); // will do one-step update
-            assert(prom == 3, "Unexpected number of execute() calls. Expected 3, got "+prom);
+            assert(prom == 3, "Unexpected number of execute() calls. Expected 3, got " + prom);
 
         },
 
@@ -528,7 +527,7 @@ class MovingAnim extends Component {
     }
 
     update(delta, absolute) {
-        this.owner.mesh.position.set(this.initPosX + this.radius * Math.cos(absolute), 
-        this.initPosY + this.radius * Math.sin(absolute));
+        this.owner.mesh.position.set(this.initPosX + this.radius * Math.cos(absolute),
+            this.initPosY + this.radius * Math.sin(absolute));
     }
 }

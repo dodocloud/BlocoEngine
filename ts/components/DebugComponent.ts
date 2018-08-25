@@ -1,4 +1,6 @@
 import Component from '../engine/Component';
+import {MSG_OBJECT_ADDED, MSG_OBJECT_REMOVED, MSG_ALL,
+    STATE_DRAWABLE, STATE_INACTIVE, STATE_LISTENING, STATE_UPDATABLE} from '../engine/Constants';
 
 // Debugging component that renders the whole scene graph
 class DebugComponent extends Component {
@@ -39,15 +41,15 @@ class DebugComponent extends Component {
     _drawBoundingBox(ctx, node) {
         if (node.hasState(STATE_DRAWABLE)) {
             let bb = node.bbox;
-            let posX = bb.topLeftX * UNIT_SIZE;
-            let posY = bb.topLeftY * UNIT_SIZE;
+            let posX = bb.topLeftX * this.scene.unitSize;
+            let posY = bb.topLeftY * this.scene.unitSize;
             let size = bb.getSize();
 
             if (size.width != 0 && size.height != 0) {
-                ctx.rect(posX, posY, size.width * UNIT_SIZE, size.height * UNIT_SIZE);
+                ctx.rect(posX, posY, size.width * this.scene.unitSize, size.height * this.scene.unitSize);
             }
 
-            ctx.rect(node.trans.absPosX * UNIT_SIZE, node.trans.absPosY * UNIT_SIZE, 10, 10);
+            ctx.rect(node.trans.absPosX * this.scene.unitSize, node.trans.absPosY * this.scene.unitSize, 10, 10);
         }
         for (let [id, child] of node.children) {
             this._drawBoundingBox(ctx, child);

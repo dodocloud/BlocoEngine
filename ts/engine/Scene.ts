@@ -1,19 +1,22 @@
 import GameObject from './GameObject';
 import Msg from './Msg';
 import Component from './Component';
+import * as PIXI from 'pixi.js'
+import {MSG_OBJECT_ADDED, MSG_OBJECT_REMOVED, MSG_ALL,
+    STATE_DRAWABLE, STATE_INACTIVE, STATE_LISTENING, STATE_UPDATABLE} from './Constants';
 
 type updateEventFunc = (param1: number, param2: number) => void;
 
 class Invocation {
     delay = 0;
     time = 0;
-    action : () => void = null;
+    action: () => void = null;
 }
 
 // Scene that keeps collection of all game
 // objects and calls draw and update upon them
 export default class Scene {
-
+    unitSize = 1; // unit size in px - all attributes are calculated against this size
     canvas: HTMLCanvasElement;
     canvasCtx: CanvasRenderingContext2D;
     pixiApp: PIXI.Application;
@@ -34,7 +37,7 @@ export default class Scene {
     // collection of all game object, mapped by their secondary ids
     gameObjectSecIds = new Map<number, GameObject>();
 
-    constructor(canvas, pixiApp = null) {
+    constructor(canvas: HTMLCanvasElement, pixiApp: PIXI.Application) {
 
         /**
          * Link to canvas
@@ -179,8 +182,11 @@ export default class Scene {
 
         this.root = new GameObject("root");
         this.root.scene = this;
-        this.root.mesh.width = this.canvas.width / UNIT_SIZE;
-        this.root.mesh.height = this.canvas.height / UNIT_SIZE;
+
+        if (this.root.mesh != null) {
+            this.root.mesh.width = this.canvas.width / this.unitSize;
+            this.root.mesh.height = this.canvas.height / this.unitSize;
+        }
 
         // create PixiJS container
         this.root.mesh = new PIXI.Container();
@@ -202,7 +208,7 @@ export default class Scene {
         this.pendingInvocations = new Array<Invocation>();
     }
 
-    getWidth() : number {
+    getWidth(): number {
         return this.root.mesh.width;
     }
 
@@ -210,7 +216,7 @@ export default class Scene {
         this.root.mesh.width = width;
     }
 
-    getHeight() : number {
+    getHeight(): number {
         return this.root.mesh.height;
     }
 
@@ -250,7 +256,7 @@ export default class Scene {
         if (this.beforeDraw != null) {
             this.beforeDraw();
         }
-        
+
         for (let [key, gameObject] of this.gameObjects) {
             gameObject.draw(this.canvasCtx);
         }

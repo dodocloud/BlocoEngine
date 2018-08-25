@@ -1,5 +1,5 @@
 // bit array for flags
-class Flags {
+export default class Flags {
     // flag array 0-128
     flags1: number = 0;
     flags2: number = 0;

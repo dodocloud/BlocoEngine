@@ -1,6 +1,9 @@
 import Component from './Component';
 import Scene from './Scene'
 import Msg from './Msg';
+import Flags from './Flags';
+import {MSG_OBJECT_ADDED, MSG_OBJECT_REMOVED, MSG_ALL,
+STATE_DRAWABLE, STATE_INACTIVE, STATE_LISTENING, STATE_UPDATABLE} from './Constants';
 
 /**
  * Game object entity that aggregates generic attributes and components

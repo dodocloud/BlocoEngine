@@ -1,7 +1,7 @@
 import Scene from './Scene';
+import * as PIXI from 'pixi.js'
 
-
-class DodoEngine {
+export default class DodoEngine {
     app: PIXI.Application = null;
     lastTime = 0;
     gameTime = 0;
