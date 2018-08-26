@@ -3,12 +3,12 @@ import DebugComponent from '../ts/components/DebugComponent';
 import GameObject from '../ts/engine/GameObject';
 import Scene from '../ts/engine/Scene';
 
-let engine = import('../ts/engine/DodoEngine');
+let engine = import('../ts/engine/BlocoEngine');
 engine.then((val) => newGame(val.default));
 
 
 // Start a new game
-function newGame(engine: DodoEngine) {
+function newGame(engine: BlocoEngine) {
     
     engine.init(document.getElementById("gameCanvas") as HTMLCanvasElement);
 

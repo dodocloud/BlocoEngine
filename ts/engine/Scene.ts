@@ -7,6 +7,10 @@ import {MSG_OBJECT_ADDED, MSG_OBJECT_REMOVED, MSG_ALL,
 
 type updateEventFunc = (param1: number, param2: number) => void;
 
+/**
+ * Structure for pending invocation, contains a function and a time 
+ * at which it should be invoked
+ */
 class Invocation {
     delay = 0;
     time = 0;
@@ -19,43 +23,25 @@ export default class Scene {
     canvas: HTMLCanvasElement;
     canvasCtx: CanvasRenderingContext2D;
     pixiApp: PIXI.Application;
-    beforeUpdate: (param1: number, param2: number) => void = null;
-    afterUpdate: (param1: number, param2: number) => void = null;
-    beforeDraw: () => void = null;
-    afterDraw: () => void = null;
+
     root: GameObject = null;
-    pendingInvocations = new Array<Invocation>();
+    
+    private pendingInvocations = new Array<Invocation>();
     // message action keys and all subscribers that listens to all these actions
-    subscribers = new Map<string, Map<number, Component>>();
+    private subscribers = new Map<string, Map<number, Component>>();
     // component ids and list of all actions they listen to
-    subscribedMessages = new Map<number, Array<string>>();
+    private subscribedMessages = new Map<number, Array<string>>();
     // collection of all game objects, mapped by their tag and then by their ids
-    gameObjectTags = new Map<string, Map<number, GameObject>>();
+    private gameObjectTags = new Map<string, Map<number, GameObject>>();
     // collection of all game objects, mapped by their ids
-    gameObjects = new Map<number, GameObject>();
+    private gameObjects = new Map<number, GameObject>();
     // collection of all game object, mapped by their secondary ids
-    gameObjectSecIds = new Map<number, GameObject>();
+    private gameObjectSecIds = new Map<number, GameObject>();
 
     constructor(canvas: HTMLCanvasElement, pixiApp: PIXI.Application) {
-
-        /**
-         * Link to canvas
-         * @type {Canvas}
-         */
         this.canvas = canvas;
-
-        /**
-         * Link to pixi application
-         * @type {PIXI.Application}
-         */
         this.pixiApp = pixiApp;
-
-        /**
-         * Link to canvas rendering context
-         * @type {CanvasRenderingContext2D}
-         */
         this.canvasCtx = canvas.getContext('2d');
-
         this.clearScene();
     }
 
@@ -225,13 +211,8 @@ export default class Scene {
 
     // executes the update cycle
     update(delta, absolute) {
-        if (this.beforeUpdate != null) {
-            this.beforeUpdate(delta, absolute);
-        }
-
         // update
         this.root.update(delta, absolute);
-
 
         // execute pending invocations
         var i = this.pendingInvocations.length;
@@ -244,38 +225,17 @@ export default class Scene {
                 this.pendingInvocations.splice(i, 1);
             }
         }
-
-        if (this.afterUpdate != null) {
-            this.afterUpdate(delta, absolute);
-        }
-    }
-
-    // executes the draw cycle
-    draw() {
-        if (this.beforeDraw != null) {
-            this.beforeDraw();
-        }
-
-        for (let [key, gameObject] of this.gameObjects) {
-            gameObject.draw(this.canvasCtx);
-        }
-
-        if (this.afterDraw != null) {
-            this.afterDraw();
-        }
     }
 
     /**
      * Finds a first object with a given tag
-     * @param {string|number} action action key 
-     * @param {data} data any data 
      */
-    sendmsg(action, data = null) {
-        this._sendmsg(new Msg(action, null, null, data));
+    sendmsg(action: string, data: any = null) {
+        this.sendmsgEntity(new Msg(action, null, null, data));
     }
 
     // sends message to all subscribers
-    _sendmsg(msg) {
+    sendmsgEntity(msg: Msg) {
         if (this.subscribers.has(msg.action)) {
             // get all subscribed components
             let subscribedComponents = this.subscribers.get(msg.action);
@@ -297,7 +257,7 @@ export default class Scene {
     }
 
     // subscribes given component for messaging system
-    _subscribeComponent(msgKey, component) {
+    subscribeComponent(msgKey, component) {
         var subs = this.subscribers.get(msgKey);
         if (subs === undefined) {
             subs = new Map();
@@ -314,7 +274,7 @@ export default class Scene {
         this.subscribedMessages.get(component.id).push(msgKey);
     }
 
-    _unsubscribeComponent(msgKey, component) {
+    unsubscribeComponent(msgKey, component) {
         var subs = this.subscribers.get(msgKey);
         if (subs !== undefined) {
             subs.delete(component.id);
@@ -323,7 +283,7 @@ export default class Scene {
         this.subscribedMessages.delete(component.id);
     }
 
-    _addGameObject(obj) {
+    addGameObject(obj) {
         // fill all collections
         if (!this.gameObjectTags.has(obj.tag)) {
             this.gameObjectTags.set(obj.tag, new Map());
@@ -334,21 +294,21 @@ export default class Scene {
         this.gameObjectSecIds.set(obj.secondaryId, obj);
 
         // notify subscribers that a new object has been added to the scene
-        this._sendmsg(new Msg(MSG_OBJECT_ADDED, null, obj));
+        this.sendmsgEntity(new Msg(MSG_OBJECT_ADDED, null, obj));
     }
 
     // immediately removes a given game object
-    _removeGameObject(obj) {
+    removeGameObject(obj) {
         this.gameObjectTags.get(obj.tag).delete(obj.id);
         this.gameObjectSecIds.delete(obj.secondaryId);
         this.gameObjects.delete(obj.id);
 
         // send message that the game object has been removed
-        this._sendmsg(new Msg(MSG_OBJECT_REMOVED, null, obj));
+        this.sendmsgEntity(new Msg(MSG_OBJECT_REMOVED, null, obj));
     }
 
 
-    _removeComponent(component) {
+    removeComponent(component) {
         this.subscribedMessages.delete(component.id);
 
         if (this.subscribedMessages.has(component.id)) {

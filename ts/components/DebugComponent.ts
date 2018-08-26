@@ -3,7 +3,9 @@ import GameObject from '../engine/GameObject';
 import {MSG_OBJECT_ADDED, MSG_OBJECT_REMOVED, MSG_ALL,
     STATE_DRAWABLE, STATE_INACTIVE, STATE_LISTENING, STATE_UPDATABLE} from '../engine/Constants';
 
-// Debugging component that renders the whole scene graph
+/**
+ * Debugging component that renders the whole scene graph
+ */
 export default class DebugComponent extends Component {
     targetHtmlElement : HTMLElement = null;
     strWrapper: any = null;
@@ -34,12 +36,12 @@ export default class DebugComponent extends Component {
 
     update(delta, absolute) {
         this.strWrapper.str = "";
-        this._processNode(this.owner, this.strWrapper);
+        this.processNode(this.owner, this.strWrapper);
         this.targetHtmlElement.innerHTML = this.strWrapper.str;
     }
 
 
-    _setPadding(padding) {
+    protected setPadding(padding) {
         let otp = "";
         for (let i = 0; i < padding; i++) {
             otp = otp.concat("&nbsp");
@@ -47,19 +49,19 @@ export default class DebugComponent extends Component {
         return otp;
     }
 
-    _processNode(node: GameObject, strWrapper, padding = 0) {
+    protected processNode(node: GameObject, strWrapper, padding = 0) {
 
         // transform:
         strWrapper.str += "<strong><span style=\"color:red\">";
         let bounds = node.mesh.getBounds();
-        strWrapper.str = strWrapper.str.concat(this._setPadding(padding + 2) +
+        strWrapper.str = strWrapper.str.concat(this.setPadding(padding + 2) +
             `rel:[${node.mesh.position.x.toFixed(2)},${node.mesh.position.y.toFixed(2)}]|abs:[${bounds.left.toFixed(2)},${bounds.top.toFixed(2)}]|rot: ${node.mesh.rotation.toFixed(2)}` +
             "<br>");
         strWrapper.str += "</span></strong>";
 
         // mesh
         strWrapper.str += "<strong><span style=\"color:purple\">";
-        strWrapper.str = strWrapper.str.concat(this._setPadding(padding + 2) +
+        strWrapper.str = strWrapper.str.concat(this.setPadding(padding + 2) +
             `size:[${node.mesh.width.toFixed(2)} x ${node.mesh.height.toFixed(2)}]` +
             "<br>");
         strWrapper.str += "</span></strong>";
@@ -67,7 +69,7 @@ export default class DebugComponent extends Component {
         // attributes
         for (let [key, attr] of node.attributes) {
             strWrapper.str += "<strong><span style=\"color:red\">";
-            strWrapper.str = strWrapper.str.concat(this._setPadding(padding + 2) +
+            strWrapper.str = strWrapper.str.concat(this.setPadding(padding + 2) +
                 `${key} => ${attr.toString()}` +
                 "<br>");
             strWrapper.str += "</span></strong>";
@@ -76,16 +78,16 @@ export default class DebugComponent extends Component {
         // components
         for (let cmp of node.components) {
             strWrapper.str += "<span style=\"color:blue\">";
-            strWrapper.str = strWrapper.str.concat(this._setPadding(padding + 2) + cmp.constructor.name + "<br>");
+            strWrapper.str = strWrapper.str.concat(this.setPadding(padding + 2) + cmp.constructor.name + "<br>");
             strWrapper.str += "</span>";
         }
 
         // children
         for (let [id, child] of node.children) {
             strWrapper.str += "<span style=\"color:green\">";
-            strWrapper.str = strWrapper.str.concat(this._setPadding(padding) +
+            strWrapper.str = strWrapper.str.concat(this.setPadding(padding) +
                 `${child.id}:${child.tag}` + "<br>");
-            this._processNode(child, strWrapper, padding + 4);
+            this.processNode(child, strWrapper, padding + 4);
             strWrapper.str += "</span>";
         }
     }

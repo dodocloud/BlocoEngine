@@ -1,6 +1,9 @@
 import GameObject from '../engine/GameObject';
 import Component from '../engine/Component';
 
+/**
+ * Builder for game objects
+ */
 export default class GameObjectBuilder {
 	gameObj: GameObject = null;
 	isGlobal = false;

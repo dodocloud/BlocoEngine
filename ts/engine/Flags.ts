@@ -1,4 +1,6 @@
-// bit array for flags
+/**
+ * Bit array for flags
+ */
 export default class Flags {
     // flag array 0-128
     flags1: number = 0;
@@ -7,8 +9,8 @@ export default class Flags {
     flags4: number = 0;
 
     hasFlag(flag: number) {
-        let index = this._getFlagIndex(flag);
-        let offset = this._getFlagOffset(flag);
+        let index = this.getFlagIndex(flag);
+        let offset = this.getFlagOffset(flag);
         let binary = 1 << offset;
 
         if (index <= 3) {
@@ -34,24 +36,24 @@ export default class Flags {
     }
 
     setFlag(flag: number) {
-        this._changeFlag(true, flag);
+        this.changeFlag(true, flag);
     }
 
     resetFlag(flag: number) {
-        this._changeFlag(false, flag);
+        this.changeFlag(false, flag);
     }
 
-    _getFlagIndex(flag: number) {
+    private getFlagIndex(flag: number) {
         return Math.floor(flag / 32); // sizeof 32bit int
     }
 
-    _getFlagOffset(flag: number) {
+    private getFlagOffset(flag: number) {
         return flag % 32; // sizeof 32bit int
     }
 
-    _changeFlag(set: boolean, flag: number) {
-        let index = this._getFlagIndex(flag);
-        let offset = this._getFlagOffset(flag);
+    private changeFlag(set: boolean, flag: number) {
+        let index = this.getFlagIndex(flag);
+        let offset = this.getFlagOffset(flag);
         let binary = 1 << offset;
 
         if (index <= 3) {

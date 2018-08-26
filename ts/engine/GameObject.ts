@@ -37,12 +37,12 @@ export default class GameObject {
 
 	// temporary collection that keeps objects for removal -> objects should be removed
 	// at the end of the update cycle since we are sure there aren't any running components
-	_objectsToRemove: Array<GameObject> = new Array();
-	_componentsToRemove: Array<Component> = new Array();
+	protected objectsToRemove: Array<GameObject> = new Array();
+	protected componentsToRemove: Array<Component> = new Array();
 	// temporary collection that keeps objects for adding -> objects should be added
 	// at the end of the update cycle since we are sure there aren't any running components
-	_objectsToAdd: Array<GameObject> = new Array();
-	_componentsToAdd: Array<Component> = new Array();
+	protected objectsToAdd: Array<GameObject> = new Array();
+	protected componentsToAdd: Array<Component> = new Array();
 
 	constructor(tag, secondaryId = -10000, mesh : PIXI.Container = null) {
 		/**
@@ -83,20 +83,20 @@ export default class GameObject {
 	submitChanges(recursively = false) {
 
 		// TODO update pixi transform
-		this._addPendingGameObjects(!recursively);
+		this.addPendingGameObjects(!recursively);
 
 		// add game objects first 
 		if (recursively) {
 			for (let [key, val] of this.children) {
-				val._addPendingGameObjects();
+				val.addPendingGameObjects();
 			}
 		}
 
 		// components should be added after all game objects
-		this._addPendingComponents();
+		this.addPendingComponents();
 
-		this._removePendingComponents();
-		this._removePendingGameObjects(!recursively);
+		this.removePendingComponents();
+		this.removePendingGameObjects(!recursively);
 
 		// update other collections
 		if (recursively) {
@@ -166,23 +166,23 @@ export default class GameObject {
 	addGameObject(obj: GameObject) {
 		obj.scene = this.scene;
 		obj.parent = this;
-		this._objectsToAdd.push(obj);
+		this.objectsToAdd.push(obj);
 	}
 
 	// removes given game object as soon as the update cycle finishes
 	removeGameObject(obj: GameObject) {
 		obj.state = STATE_INACTIVE;
-		this._objectsToRemove.push(obj);
+		this.objectsToRemove.push(obj);
 	}
 
 	addComponent(component: Component) {
 		component.owner = this;
 		component.scene = this.scene;
-		this._componentsToAdd.push(component);
+		this.componentsToAdd.push(component);
 	}
 
 	removeComponent(component: Component) {
-		this._componentsToRemove.push(component);
+		this.componentsToRemove.push(component);
 	}
 
 	removeComponentByName(name: string) {
@@ -194,9 +194,9 @@ export default class GameObject {
 		}
 		// try also the pending collection
 		let cntr = 0;
-		for (let cmp of this._componentsToAdd) {
+		for (let cmp of this.componentsToAdd) {
 			if (cmp.constructor.name == name) {
-				this._componentsToAdd.splice(cntr);
+				this.componentsToAdd.splice(cntr);
 				return true;
 			}
 			cntr++;
@@ -214,7 +214,7 @@ export default class GameObject {
 		for (let cmp of this.components) {
 			if (cmp.constructor.name == name) return cmp;
 		}
-		for (let cmp of this._componentsToAdd) {
+		for (let cmp of this.componentsToAdd) {
 			if (cmp.constructor.name == name) return cmp;
 		}
 		return null;
@@ -249,40 +249,31 @@ export default class GameObject {
 		}
 	}
 
-	draw(ctx: CanvasRenderingContext2D) {
-		if (this.hasState(STATE_DRAWABLE)) {
-			for (let component of this.components) {
-				component.draw(ctx)
-			}
-		}
-		// children are drawn via scene
-	}
-
 	// adds pending objects
-	_addPendingGameObjects(submitChanges = true) {
-		for (let obj of this._objectsToAdd) {
+	protected addPendingGameObjects(submitChanges = true) {
+		for (let obj of this.objectsToAdd) {
 			// set it in both addGameObject and _addPendingGameObject since
 			// the parent might not had its scene assigned
 			obj.scene = this.scene;
 			obj.parent = this;
 			this.children.set(obj.id, obj);
 			this.mesh.addChild(obj.mesh);
-			this.scene._addGameObject(obj);
+			this.scene.addGameObject(obj);
 
 			if (submitChanges) {
 				obj.submitChanges(false);
 			}
 		}
 
-		this._objectsToAdd = [];
+		this.objectsToAdd = [];
 	}
 
 	// removes pending objects;
-	_removePendingGameObjects(submitChanges = true) {
-		for (let obj of this._objectsToRemove) {
+	protected removePendingGameObjects(submitChanges = true) {
+		for (let obj of this.objectsToRemove) {
 			obj.removeAllComponents();
 			obj.submitChanges(false);
-			this.scene._removeGameObject(obj);
+			this.scene.removeGameObject(obj);
 			this.children.delete(obj.id);
 			obj.parent = null;
 			obj.scene = null;
@@ -292,33 +283,33 @@ export default class GameObject {
 			}
 		}
 
-		this._objectsToRemove = [];
+		this.objectsToRemove = [];
 	}
 
-	_addPendingComponents() {
-		for (let obj of this._componentsToAdd) {
+	protected addPendingComponents() {
+		for (let obj of this.componentsToAdd) {
 			obj.owner = this;
 			obj.scene = this.scene;
 			this.components.push(obj);
 			obj.oninit();
 		}
 
-		this._componentsToAdd = [];
+		this.componentsToAdd = [];
 	}
 
 	// removes all components that are to be removed
-	_removePendingComponents() {
-		for (let component of this._componentsToRemove) {
+	protected removePendingComponents() {
+		for (let component of this.componentsToRemove) {
 			component.finalize();
 
 			for (var i = 0; i < this.components.length; i++) {
 				if (this.components[i] == component) {
 					this.components.splice(i, 1);
-					this.scene._removeComponent(component);
+					this.scene.removeComponent(component);
 					break;
 				}
 			}
 		}
-		this._componentsToRemove = [];
+		this.componentsToRemove = [];
 	}
 }

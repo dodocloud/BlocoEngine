@@ -5,7 +5,7 @@ import Scene from '../ts/engine/Scene';
 
 var img = require('./img/speeddriver.png');
 
-let engine = import('../ts/engine/DodoEngine');
+let engine = import('../ts/engine/BlocoEngine');
 engine.then((val) => {
     if (PIXI.utils.TextureCache[img] != null) {
         newGame(val.default);
@@ -18,7 +18,7 @@ engine.then((val) => {
 
 
 //This `setup` function will run when the image has loaded
-function newGame(engine: DodoEngine) {
+function newGame(engine: BlocoEngine) {
 
     engine.init(document.getElementById("gameCanvas") as HTMLCanvasElement);
 

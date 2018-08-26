@@ -1,7 +1,10 @@
 import Scene from './Scene';
 import * as PIXI from 'pixi.js'
 
-class DodoEngine {
+/**
+ * Entry point to the engine, initializes PIXI library
+ */
+class BlocoEngine {
     app: PIXI.Application = null;
     lastTime = 0;
     gameTime = 0;
@@ -40,4 +43,4 @@ class DodoEngine {
     }
 }
 
-export default new DodoEngine();
+export default new BlocoEngine();

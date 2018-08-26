@@ -4,14 +4,14 @@ import DebugComponent from '../ts/components/DebugComponent';
 import GameObject from '../ts/engine/GameObject';
 import Scene from '../ts/engine/Scene';
 import GameObjectBuilder from '../ts/builders/GameObjectBuilder';
-import Executor from '../ts/components/Executor';
+import ChainingComponent from '../ts/components/ChainingComponent';
 
-let engine = import('../ts/engine/DodoEngine');
+let engine = import('../ts/engine/BlocoEngine');
 engine.then((val) => newGame(val.default));
 
 
 // Start a new game
-function newGame(engine: DodoEngine) {
+function newGame(engine: BlocoEngine) {
 
     engine.init(document.getElementById("gameCanvas") as HTMLCanvasElement,100);
 
@@ -26,7 +26,7 @@ function newGame(engine: DodoEngine) {
     .withMesh(rectangleGfx)
     .withPosition(2,2)
     .withCenteredOrigin()
-    .withComponent(new Executor()
+    .withComponent(new ChainingComponent()
         .beginRepeat(0)
         .addComponentAndWait(() => new RotationAnimation(0,1,1)) 
         .addComponentAndWait(() => new TranslateAnimation(1,1,2,2,1))

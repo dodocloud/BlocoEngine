@@ -10,8 +10,10 @@ const MSG_DOWN = "DOWN";
 const MSG_MOVE = "MOVE";
 const MSG_UP = "UP";
 
-// Component that handles touch and mouse events and transforms them into messages 
-// that can be subscribed by any other component
+/**
+ * Component that handles touch and mouse events and transforms them into messages 
+ * that can be subscribed by any other component
+ */
 class InputManager extends Component {
     mode = INPUT_TOUCH
     startHandler : (evt: TouchEvent) => void = null;
@@ -67,7 +69,7 @@ class InputManager extends Component {
         }
     }
 
-    handleStart(evt: TouchEvent | MouseEvent) {
+    protected handleStart(evt: TouchEvent | MouseEvent) {
         evt.preventDefault();
         let isTouch = evt instanceof TouchEvent;
         if (isTouch && (evt as TouchEvent).changedTouches.length == 1) {
@@ -85,7 +87,7 @@ class InputManager extends Component {
         }
     }
 
-    handleMove(evt: TouchEvent) {
+    protected handleMove(evt: TouchEvent) {
         evt.preventDefault();
         let isTouch = typeof (evt.changedTouches) !== "undefined";
         this.sendmsg(MSG_MOVE, {
@@ -94,7 +96,7 @@ class InputManager extends Component {
         });
     }
 
-    handleEnd(evt: TouchEvent | MouseEvent) {
+    protected handleEnd(evt: TouchEvent | MouseEvent) {
         evt.preventDefault();
         var posX, posY;
         let isTouch = evt instanceof TouchEvent;
@@ -129,7 +131,7 @@ class InputManager extends Component {
     }
 
     // Get the mouse position
-    getMousePos(canvas : HTMLCanvasElement, evt : TouchEvent | MouseEvent, isTouch: boolean) {
+    protected getMousePos(canvas : HTMLCanvasElement, evt : TouchEvent | MouseEvent, isTouch: boolean) {
         var rect = canvas.getBoundingClientRect();
         let clientX = isTouch ? (evt as TouchEvent).changedTouches[0].clientX : (evt as MouseEvent).clientX;
         let clientY = isTouch ? (evt as TouchEvent).changedTouches[0].clientY : (evt as MouseEvent).clientY;

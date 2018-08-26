@@ -39,7 +39,7 @@ export class BaseAnimation extends Component {
         if (!this.goingBack) {
             // going forward
             let percent = this.interpolation(absolute, this.startTime, this.duration);
-            this._applyAnim(percent, false);
+            this.applyAnim(percent, false);
 
             if (percent >= 1) {
                 if (this.goBack) {
@@ -52,7 +52,7 @@ export class BaseAnimation extends Component {
         } else {
             // going back (only if goBack == true)
             let percent = this.interpolation(absolute, this.startTime, this.duration);
-            this._applyAnim(percent, true);
+            this.applyAnim(percent, true);
 
             if (percent >= 1) {
                 if (++this.currentLoop != this.loops) {
@@ -65,7 +65,7 @@ export class BaseAnimation extends Component {
         }
     }
 
-    _applyAnim(percent, inverted) {
+    protected applyAnim(percent, inverted) {
         // override in child classes
     }
 }
@@ -90,7 +90,7 @@ export class TranslateAnimation extends BaseAnimation {
         this.owner.mesh.position.y = this.srcPosY;
     }
 
-    _applyAnim(percent, inverted) {
+    protected applyAnim(percent, inverted) {
         if (inverted) {
             this.owner.mesh.position.x = this.targetPosX + percent * (this.srcPosX - this.targetPosX);
             this.owner.mesh.position.y = this.targetPosY + percent * (this.srcPosY - this.targetPosY);
@@ -116,7 +116,7 @@ export class RotationAnimation extends BaseAnimation {
         this.owner.mesh.rotation = this.srcRot;
     }
 
-    _applyAnim(percent, inverted) {
+    protected applyAnim(percent, inverted) {
         if (inverted) {
             this.owner.mesh.rotation = this.targetRot + percent * (this.srcRot - this.targetRot);
         } else {

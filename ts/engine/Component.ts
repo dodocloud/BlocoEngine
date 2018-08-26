@@ -3,7 +3,9 @@ import Msg from './Msg';
 import Scene from './Scene';
 
 
-// Component that defines functional behavior of the game object (or its part)
+/**
+ * Component that defines functional behavior of the game object (or its part)
+ */
 export default class Component {
     static idCounter = 0;
     id = 0;
@@ -13,10 +15,6 @@ export default class Component {
     onFinished : (component: Component) => void = null;
 
 	constructor() {
-		/**
-         * Component identifier, set automatically
-         * @type {number}
-         */
 		this.id = Component.idCounter++;
 	}
 
@@ -27,16 +25,16 @@ export default class Component {
 
 	// subscribes itself as a listener for action with given key
 	subscribe(action: string) {
-		this.scene._subscribeComponent(action, this);
+		this.scene.subscribeComponent(action, this);
 	}
 
 	unsubscribe(action : string){
-		this.scene._unsubscribeComponent(action, this);
+		this.scene.unsubscribeComponent(action, this);
 	}
 
 	// sends message to all subscribers
 	sendmsg(action : string, data : any = null) {
-		this.scene._sendmsg(new Msg(action, this, this.owner, data));
+		this.scene.sendmsgEntity(new Msg(action, this, this.owner, data));
 	}
 
 	// handles incoming message
@@ -46,11 +44,6 @@ export default class Component {
 
 	// invokes update cycle
 	update(delta : number, absolute : number) {
-		// override
-	}
-
-	// invokes drawing cycle
-	draw(ctx : CanvasRenderingContext2D) {
 		// override
 	}
 

@@ -4,14 +4,14 @@ import DebugComponent from '../ts/components/DebugComponent';
 import GameObject from '../ts/engine/GameObject';
 import Scene from '../ts/engine/Scene';
 import GameObjectBuilder from '../ts/builders/GameObjectBuilder';
-import Executor from '../ts/components/Executor';
+import ChainingComponent from '../ts/components/ChainingComponent';
 
-let engine = import('../ts/engine/DodoEngine');
+let engine = import('../ts/engine/BlocoEngine');
 engine.then((val) => newGame(val.default));
 
 
 // Start a new game
-function newGame(engine: DodoEngine) {
+function newGame(engine: BlocoEngine) {
 
     engine.init(document.getElementById("gameCanvas") as HTMLCanvasElement,100);
 
@@ -26,16 +26,12 @@ function newGame(engine: DodoEngine) {
         .withMesh(rectangleGfx)
         .withPosition(200, 200)
         .withCenteredOrigin()
-        .withComponent(new Executor()
+        .withComponent(new ChainingComponent()
             .beginInterval(0)
-            .execute((cmp) => cmp.addComponentAndWait(new TranslateAnimation(1, 1, 2, 1, 1)))
-            .removePrevious()
-            .execute((cmp) => cmp.addComponentAndWait(new TranslateAnimation(2, 1, 2, 2, 1)))
-            .removePrevious()
-            .execute((cmp) => cmp.addComponentAndWait(new TranslateAnimation(2, 2, 1, 2, 1)))
-            .removePrevious()
-            .execute((cmp) => cmp.addComponentAndWait(new TranslateAnimation(1, 2, 1, 1, 1)))
-            .removePrevious()
+            .execute((cmp) => cmp.addComponentAndWait(new TranslateAnimation(1, 1, 2, 1, 1),null,true))
+            .execute((cmp) => cmp.addComponentAndWait(new TranslateAnimation(2, 1, 2, 2, 1),null,true))
+            .execute((cmp) => cmp.addComponentAndWait(new TranslateAnimation(2, 2, 1, 2, 1),null,true))
+            .execute((cmp) => cmp.addComponentAndWait(new TranslateAnimation(1, 2, 1, 1, 1),null,true))
             .endInterval()
         )
         .asGlobal()
