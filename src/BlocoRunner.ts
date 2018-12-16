@@ -5,7 +5,7 @@ import '../libs/pixi-sound/pixi-sound.js';
 /**
  * Entry point to the PIXIJS
  */
-export class PixiRunner {
+export class BlocoRunner {
     app: PIXI.Application = null;
     lastTime = 0;
     gameTime = 0;

@@ -1,6 +1,6 @@
 {
-  "name": "BloboJS",
-  "version": "0.3.0",
+  "name": "blocojs",
+  "version": "0.3.1",
   "description": "PIXI.js component-oriented microengine",
   "author": "Adam Vesecky",
   "contributors": [
