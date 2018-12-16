@@ -1,0 +1,26 @@
+{
+	"compilerOptions": {
+		"sourceMap": true,
+		"inlineSources": true,
+		"declaration": true,
+		"removeComments": false,
+		"target": "es5",
+		"lib": [
+			"DOM",
+			"ES6"
+		],
+		"module": "amd",
+		"noImplicitAny": true,
+		"noLib": false,
+		"preserveConstEnums": true,
+		"moduleResolution": "node",
+		"noFallthroughCasesInSwitch": false,
+		"noImplicitReturns": true,
+		"downlevelIteration": true, // this will enable us to iterate over map
+		"allowUnreachableCode": true,
+		"typeRoots": [
+			"node_modules/@types"
+		],
+		"outFile": "../dist/bloco.js"
+	}
+}

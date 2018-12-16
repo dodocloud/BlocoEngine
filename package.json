@@ -1,16 +1,33 @@
 {
+  "name": "BloboJS",
+  "version": "0.3.0",
+  "description": "PIXI.js component-oriented microengine",
+  "author": "Adam Vesecky",
+  "contributors": [
+    "Adam Vesecky <vesecky.adam@gmail.com>"
+  ],
+  "main": "./dist/bloco.js",
+  "types": "./dist/bloco.d.ts",
+  "homepage": "https://github.com/dodocloud/BlocoEngine",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dodocloud/BlocoEngine.git"
+  },
   "scripts": {
-    "start": "parcel examples/*.html --out-dir www --open",
-    "start_no_map": "parcel examples/*.html --out-dir www --open --no-source-maps",
-    "deploy": "parcel build examples/*.html --no-source-maps",
-    "tests": "parcel examples/tests.html --out-dir www --open"
+    "cleanup": "rimraf dist && mkdirp dist",
+    "prestart": "npm run cleanup",
+    "build": "tsc -p src/"
   },
+  "files": [
+    "dist/",
+    "src/"
+  ],
   "devDependencies": {
-    "parcel-bundler": "^1.8.1",
-    "typescript": "^2.8.3",
-    "@types/pixi.js": "^4.7.1",
-    "pixi.js": "^4.7.3"
-  },
-  "dependencies": {
+    "rimraf": "~2.5.3",
+    "mkdirp": "~0.5.1",
+    "@types/pixi.js": "^4.8.3",
+    "pixi.js": "^4.8.2",
+    "typescript": "^3.1.1"
   }
 }

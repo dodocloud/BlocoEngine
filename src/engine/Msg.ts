@@ -1,27 +1,32 @@
 import Component from './Component';
-import GameObject from './GameObject';
+import { PIXICmp } from './PIXIObject';
 
-// Message entity that keeps custom data, a source object and component
+/**
+ * Message that stores type of action, a relevant component, a relevant game object and custom data if needed
+ */
 export default class Msg {
-    
+
     /**
     * Action type identifier
     */
     action: string = null;
+
     /**
     * Component that sent this message
     */
     component: Component = null;
+
     /**
     * GameObject attached to this message
     */
-    gameObject: GameObject = null;
+    gameObject: PIXICmp.ComponentObject = null;
+    
     /**
      * Data payload
      */
     data: any = null;
 
-    constructor(action, component, gameObject, data = null) {
+    constructor(action: string, component: Component, gameObject: PIXICmp.ComponentObject, data: any = null) {
         this.action = action;
         this.component = component;
         this.gameObject = gameObject;
