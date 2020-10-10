@@ -1,6 +1,6 @@
 {
   "name": "blocojs",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "PIXI.js component-oriented library",
   "author": "Adam Vesecky",
   "contributors": [
@@ -15,7 +15,8 @@
     "url": "https://github.com/dodocloud/blocojs.git"
   },
   "scripts": {
-    "build": "tsc -p src/"
+    "build": "tsc",
+    "prepublish": "tsc"
   },
   "files": [
     "src/"
