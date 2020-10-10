@@ -1,18 +1,18 @@
 {
-  "name": "pixi-bloco",
-  "version": "0.3.2",
-  "description": "PIXI.js component-oriented microengine",
+  "name": "blocojs",
+  "version": "0.3.4",
+  "description": "PIXI.js component-oriented library",
   "author": "Adam Vesecky",
   "contributors": [
     "Adam Vesecky <vesecky.adam@gmail.com>"
   ],
   "main": "./dist/bloco.js",
   "types": "./dist/bloco.d.ts",
-  "homepage": "https://github.com/dodocloud/pixi-bloco",
+  "homepage": "https://github.com/dodocloud/blocojs",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/dodocloud/pixi-bloco.git"
+    "url": "https://github.com/dodocloud/blocojs.git"
   },
   "scripts": {
     "build": "tsc -p src/"
