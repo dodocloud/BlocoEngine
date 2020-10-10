@@ -1,8 +1,8 @@
 import Component from '../engine/Component';
 import GameObjectProxy from '../engine/GameObjectProxy';
-import { MSG_ANY } from '../engine/Constants';
+import { Messages } from '../engine/Constants';
 import { PIXICmp } from '../engine/PIXIObject';
-import Msg from '../engine/Msg';
+import { Msg } from '../engine/Msg';
 
 /**
  * Debugging component that display a scene graph
@@ -25,7 +25,7 @@ export default class DebugComponent extends Component {
 
     onInit() {
         // subscribe to all messages
-        this.subscribe(MSG_ANY);
+        this.subscribe(Messages.ANY);
     }
 
     onMessage(msg: Msg) {

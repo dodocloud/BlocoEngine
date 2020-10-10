@@ -4,32 +4,32 @@ import { PIXICmp } from './PIXIObject';
 /**
  * Message that stores type of action, a relevant component, a relevant game object and custom data if needed
  */
-export default class Msg {
+export class Msg {
 
     /**
-    * Action type identifier
-    */
+     * Action type identifier
+     */
     _action: string = null;
 
-    /**
+   /**
     * Component that sent this message
     */
     _component: Component = null;
 
     /**
-    * GameObject attached to this message
-    */
+     * GameObject attached to this message
+     */
     _gameObject: PIXICmp.ComponentObject = null;
-    
+
     /**
      * Data payload
      */
     data: any = null;
 
     constructor(action: string, component: Component, gameObject: PIXICmp.ComponentObject, data: any = null) {
-        this.action = action;
-        this.component = component;
-        this.gameObject = gameObject;
+        this._action = action;
+        this._component = component;
+        this._gameObject = gameObject;
         this.data = data;
     }
 

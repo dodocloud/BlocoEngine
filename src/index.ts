@@ -1,4 +1,4 @@
-import * as BlocoRunner from "./engine/BlocoRunner";
+import * as GameLoop from "./engine/GameLoop";
 import * as Component from "./engine/Component";
 import * as Constants from "./engine/Constants";
 import * as Flags from "./engine/Flags";
@@ -20,7 +20,7 @@ import * as QuadTree from "./utils/QuadTree";
 import * as Vec2 from "./utils/Vec2";
 
 export default {
-  BlocoRunner,
+  GameLoop,
   Component,
   Constants,
   Flags,
