@@ -186,6 +186,7 @@ export default class ChainingComponent extends Component {
   // help parameters used for processing one node
   protected tmpParam: any = null;
   protected tmpParam2: any = null;
+  protected tmpParamArray: string[] = [];
 
   /**
    * Repeats the following part of the chain until endRepeat()
@@ -377,7 +378,7 @@ export default class ChainingComponent extends Component {
   }
 
   onMessage(msg: Message) {
-    this.tmpParam2 = msg.action;
+    this.tmpParamArray.push(msg.action);
   }
 
   onUpdate(delta: number, absolute: number) {
@@ -404,7 +405,7 @@ export default class ChainingComponent extends Component {
         let temp = this.scopeStack.pop();
 
         temp.setParam1(temp.getParam1() - 1); // decrement number of repetitions
-        if (temp.getParam2() === true || // infinite loop
+        if (temp.getParam2() === true || // infinite loop check
           temp.getParam1() > 0) {
           // jump to the beginning
           this.current = temp;
@@ -577,16 +578,18 @@ export default class ChainingComponent extends Component {
       case CMD_WAIT_FOR_MESSAGE:
         // tmpParam indicates that this component has already subscribed the message
         if (this.tmpParam === true) {
-          if (this.tmpParam2 === this.current.param1) {
+          if (this.tmpParamArray.indexOf(this.current.param1) !== -1) {
             // got message -> unsubscribe and proceed
             this.unsubscribe(this.current.param1);
             this.tmpParam = this.tmpParam2 = null;
+            this.tmpParamArray = [];
             this.gotoNextImmediately(delta, absolute);
           }
         } else {
           // just subscribe and wait
           this.tmpParam = true;
           this.tmpParam2 = null;
+          this.tmpParamArray = [];
           this.subscribe(this.current.param1);
         }
         break;
