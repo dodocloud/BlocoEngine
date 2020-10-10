@@ -1,9 +1,9 @@
-import GameObjectProxy from './GameObjectProxy';
-import { Msg } from './Msg';
-import Component from './Component';
+import GameObjectProxy from './game-object-proxy';
+import { Msg } from './message';
+import Component from './component';
 import * as PIXI from 'pixi.js'
-import { Messages } from './Constants';
-import { PIXICmp } from './PIXIObject';
+import { Messages } from './constants';
+import { PIXICmp } from './pixi-object';
 
 
 /**
