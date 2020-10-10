@@ -1,15 +1,20 @@
 {
     "compilerOptions": {
-      "target": "es5",    
-      "lib": ["es6", "dom"], 
-      "module": "commonJS", 
-      "outDir": "dist",    
-      "downlevelIteration": true,
-      "declaration": true,
+        "target": "es5",
+        "lib": [
+            "es6",
+            "dom"
+        ],
+        "module": "commonJS",
+        "outDir": "dist",
+        "downlevelIteration": true,
+        "declaration": true,
     },
-    "include": ["./src/**/*"],
+    "include": [
+        "./src/**/*"
+    ],
     "exclude": [
-      "node_modules",
-      "dist"
+        "node_modules",
+        "dist"
     ]
-  }
+}

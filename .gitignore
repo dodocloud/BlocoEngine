@@ -4,3 +4,4 @@ node_modules
 www/
 package-lock.json
 dist/
+build/

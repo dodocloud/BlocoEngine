@@ -1,8 +1,20 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2020-10-10
+### Added
 
-## [0.3.4] - 2020-10-10
+### Changed
+Improved all built-in components
+Introduced PROPS property instead of respective parameters
+Polished scene lifecycle
+Polished PIXI proxy objects hierarchy
+Added more tests
+
+### Removed
+
+
+## [0.3.4] - 2019-12-05
 ### Added
 
 ### Changed
