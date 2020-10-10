@@ -1,8 +1,6 @@
 ![logo](docs/logo.png)
 
-A tiny component-oriented game engine integrated with PixiJS gfx library. Uses <a href="https://github.com/parcel-bundler/parcel" target="_blank">Parcel bundler</a> for compilation and hot reload.
-
-**Budget**: ~60 working hours so far
+A tiny component-oriented game engine integrated with PixiJS gfx library
 
 ## Installation
 

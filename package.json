@@ -1,6 +1,6 @@
 {
-  "name": "blocojs",
-  "version": "0.3.1",
+  "name": "pixi-bloco",
+  "version": "0.3.2",
   "description": "PIXI.js component-oriented microengine",
   "author": "Adam Vesecky",
   "contributors": [
@@ -8,26 +8,20 @@
   ],
   "main": "./dist/bloco.js",
   "types": "./dist/bloco.d.ts",
-  "homepage": "https://github.com/dodocloud/BlocoEngine",
+  "homepage": "https://github.com/dodocloud/pixi-bloco",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/dodocloud/BlocoEngine.git"
+    "url": "https://github.com/dodocloud/pixi-bloco.git"
   },
   "scripts": {
-    "cleanup": "rimraf dist && mkdirp dist",
-    "prestart": "npm run cleanup",
     "build": "tsc -p src/"
   },
   "files": [
-    "dist/",
     "src/"
   ],
   "devDependencies": {
-    "rimraf": "~2.5.3",
-    "mkdirp": "~0.5.1",
-    "@types/pixi.js": "^4.8.3",
-    "pixi.js": "^4.8.2",
-    "typescript": "^3.1.1"
+    "pixi.js": "^5.3.3",
+    "typescript": "^3.4.3"
   }
 }

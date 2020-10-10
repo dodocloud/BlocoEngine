@@ -9,17 +9,17 @@ export default class Msg {
     /**
     * Action type identifier
     */
-    action: string = null;
+    _action: string = null;
 
     /**
     * Component that sent this message
     */
-    component: Component = null;
+    _component: Component = null;
 
     /**
     * GameObject attached to this message
     */
-    gameObject: PIXICmp.ComponentObject = null;
+    _gameObject: PIXICmp.ComponentObject = null;
     
     /**
      * Data payload
@@ -31,5 +31,17 @@ export default class Msg {
         this.component = component;
         this.gameObject = gameObject;
         this.data = data;
+    }
+
+    get action() {
+        return this._action;
+    }
+
+    get component() {
+        return this._component;
+    }
+
+    get gameObject() {
+        return this._gameObject;
     }
 }

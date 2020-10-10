@@ -1,11 +1,10 @@
-import * as PIXI from 'pixi.js'
-import Scene from './engine/Scene';
-import '../libs/pixi-sound/pixi-sound.js';
+import * as PIXI from 'pixi.js';
+import Scene from './Scene';
 
 /**
  * Entry point to the PIXIJS
  */
-export class BlocoRunner {
+export default class BlocoRunner {
     app: PIXI.Application = null;
     lastTime = 0;
     gameTime = 0;
