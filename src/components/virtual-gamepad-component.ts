@@ -1,7 +1,5 @@
 import { KeyInputComponent, Keys } from './key-input-component';
 import { Graphics } from '../engine/game-object';
-import { interaction } from 'pixi.js';
-
 
 export enum GamepadButtons {
   UP, DOWN, RIGHT, LEFT, X, Y, A, B
@@ -209,7 +207,7 @@ export class VirtualGamepadComponent extends KeyInputComponent {
   }
 
 
-  private pointerDown = (evt: interaction.InteractionEvent) => {
+  private pointerDown = (evt: any) => {
     let id = evt.data.identifier;
     let pressedButton = this.getPressedButton(this.getPos(evt.data.originalEvent as TouchEvent));
     if(pressedButton != null) {
@@ -218,13 +216,13 @@ export class VirtualGamepadComponent extends KeyInputComponent {
     }
   }
 
-  private pointerUp = (evt: interaction.InteractionEvent) => {
+  private pointerUp = (evt: any) => {
     let id = evt.data.identifier;
     this.pressedButtons.delete(id);
     this.renderRequired = true;
   }
 
-  private pointerMove = (evt: interaction.InteractionEvent) => {
+  private pointerMove = (evt: any) => {
     let id = evt.data.identifier;
     let pressedButton = this.getPressedButton(this.getPos(evt.data.originalEvent as TouchEvent));
     if(pressedButton !== null) {

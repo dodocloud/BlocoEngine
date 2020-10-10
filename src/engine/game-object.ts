@@ -1171,7 +1171,9 @@ export class BitmapText extends PIXI.BitmapText implements GameObject {
   _proxy: GameObjectProxy;
 
   constructor(name: string = '', text: string = '', fontName: string, fontSize: number, fontColor: number = 0xFFFFFF) {
-    super(text, { font: { name: fontName, size: fontSize }, tint: fontColor });
+    super(text, { fontName: name, 
+            fontSize: fontSize,
+            tint: fontColor });
     this._proxy = new GameObjectProxy(name, this);
   }
 
@@ -1344,7 +1346,7 @@ export class BitmapText extends PIXI.BitmapText implements GameObject {
 export class Mesh extends PIXI.Mesh implements GameObject {
   _proxy: GameObjectProxy;
 
-  constructor(name: string = '', geometry: PIXI.Geometry, shader: PIXI.Shader | PIXI.MeshMaterial, state?: PIXI.State, drawMode?: number) {
+  constructor(name: string = '', geometry: PIXI.Geometry, shader: PIXI.MeshMaterial, state?: PIXI.State, drawMode?: number) {
     super(geometry, shader, state, drawMode);
     this._proxy = new GameObjectProxy(name, this);
   }

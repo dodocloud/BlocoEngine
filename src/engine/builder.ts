@@ -31,7 +31,7 @@ class ObjectParameters {
   fontSize?: number; // bitmaptext
   fontColor?: number; // bitmaptext
   geometry?: PIXI.Geometry; // mesh
-  shader?: PIXI.Shader | PIXI.MeshMaterial; // mesh
+  shader?: PIXI.MeshMaterial; // mesh
 }
 
 
