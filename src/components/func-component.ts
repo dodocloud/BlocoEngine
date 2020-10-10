@@ -9,9 +9,9 @@ interface MessageCaptureContext<T> {
 }
 
 /**
- * Builder for generic components
+ * Builder for functional components
  */
-export class GenericComponent<T> extends Component<T> {
+export class FuncComponent<T = void> extends Component<T> {
 	protected timeout: number = 0;
 	protected firstRun: number = 0;
 
@@ -26,7 +26,7 @@ export class GenericComponent<T> extends Component<T> {
 	private onFinishFunc: (cmp: Component<T>) => void = null;
 
 	/**
-	 * Creates a new generic component
+	 * Creates a new functional component
 	 * @param name name that will be used instead of class name within the scene
 	 */
 	constructor(name: string, props?: T) {
@@ -41,7 +41,7 @@ export class GenericComponent<T> extends Component<T> {
 	/**
 	 * Registers a function that will be invoked for onInit()
 	 */
-	doOnInit(func: (cmp: GenericComponent<T>) => void): GenericComponent<T> {
+	doOnInit(func: (cmp: FuncComponent<T>) => void): FuncComponent<T> {
 		this.onInitFunc = func;
 		return this;
 	}
@@ -49,7 +49,7 @@ export class GenericComponent<T> extends Component<T> {
 	/**
 	 * Registers a function that will be invoked for onAttach()
 	 */
-	doOnAttach(func: (cmp: GenericComponent<T>) => void): GenericComponent<T> {
+	doOnAttach(func: (cmp: FuncComponent<T>) => void): FuncComponent<T> {
 		this.onAttachFunc = func;
 		return this;
 	}
@@ -57,7 +57,7 @@ export class GenericComponent<T> extends Component<T> {
 	/**
 	 * Registers a function that will be invoked when a specific message arrives
 	 */
-	doOnMessage(action: string, handler: (cmp: GenericComponent<T>, msg: Message) => void): GenericComponent<T> {
+	doOnMessage(action: string, handler: (cmp: FuncComponent<T>, msg: Message) => void): FuncComponent<T> {
 		this.onMessageHandlers.set(action, { handler: handler, onlyOnce: false });
 		return this;
 	}
@@ -65,7 +65,7 @@ export class GenericComponent<T> extends Component<T> {
 	/**
 	 * Registers a function that will be invoked when a specific message arrives, but only once
 	 */
-	doOnMessageOnce(action: string, handler: (cmp: GenericComponent<T>, msg: Message) => void): GenericComponent<T> {
+	doOnMessageOnce(action: string, handler: (cmp: FuncComponent<T>, msg: Message) => void): FuncComponent<T> {
 		this.onMessageHandlers.set(action, { handler: handler, onlyOnce: true });
 		return this;
 	}
@@ -74,7 +74,7 @@ export class GenericComponent<T> extends Component<T> {
 	 * Registers a function that will be invoked when a specific message arrives and given conditions are met
 	 * Can be used to listen only for a group of objects
 	 */
-	doOnMessageConditional(action: string, condition: QueryCondition, handler: (cmp: GenericComponent<T>, msg: Message) => void) {
+	doOnMessageConditional(action: string, condition: QueryCondition, handler: (cmp: FuncComponent<T>, msg: Message) => void) {
 		if (!this.onMessageConditionalHandlers.has(action)) {
 			this.onMessageConditionalHandlers.set(action, new Set());
 		}
@@ -85,7 +85,7 @@ export class GenericComponent<T> extends Component<T> {
 	/**
 	 * Registers a function that will be invoked for onFixedUpdate
 	 */
-	doOnFixedUpdate(func: (cmp: GenericComponent<T>, delta: number, absolute: number) => void): GenericComponent<T> {
+	doOnFixedUpdate(func: (cmp: FuncComponent<T>, delta: number, absolute: number) => void): FuncComponent<T> {
 		this.onFixedUpdateFunc = func;
 		return this;
 	}
@@ -94,7 +94,7 @@ export class GenericComponent<T> extends Component<T> {
 	/**
 	 * Registers a function that will be invoked for onUpdate
 	 */
-	doOnUpdate(func: (cmp: GenericComponent<T>, delta: number, absolute: number) => void): GenericComponent<T> {
+	doOnUpdate(func: (cmp: FuncComponent<T>, delta: number, absolute: number) => void): FuncComponent<T> {
 		this.onUpdateFunc = func;
 		return this;
 	}
@@ -102,7 +102,7 @@ export class GenericComponent<T> extends Component<T> {
 	/**
 	 * Registers a function that will be invoked for onRemove()
 	 */
-	doOnRemove(func: (cmp: GenericComponent<T>) => void): GenericComponent<T> {
+	doOnRemove(func: (cmp: FuncComponent<T>) => void): FuncComponent<T> {
 		this.onRemoveFunc = func;
 		return this;
 	}
@@ -110,7 +110,7 @@ export class GenericComponent<T> extends Component<T> {
 	/**
 	 * Registers a function that will be invoked for onDetach()
 	 */
-	doOnDetach(func: (cmp: GenericComponent<T>) => void): GenericComponent<T> {
+	doOnDetach(func: (cmp: FuncComponent<T>) => void): FuncComponent<T> {
 		this.onDetachFunc = func;
 		return this;
 	}
@@ -118,12 +118,12 @@ export class GenericComponent<T> extends Component<T> {
 	/**
 	 * Registers a function that will be invoked for onFinish()
 	 */
-	doOnFinish(func: (cmp: GenericComponent<T>) => void): GenericComponent<T> {
+	doOnFinish(func: (cmp: FuncComponent<T>) => void): FuncComponent<T> {
 		this.onFinishFunc = func;
 		return this;
 	}
 
-	setFixedFrequency(fixedfrequency: number): GenericComponent<T> {
+	setFixedFrequency(fixedfrequency: number): FuncComponent<T> {
 		this.fixedFrequency = fixedfrequency;
 		return this;
 	}
@@ -131,7 +131,7 @@ export class GenericComponent<T> extends Component<T> {
 	/**
 	 * Sets timeout for how long this component should run
 	 */
-	setTimeout(timeout: number): GenericComponent<T> {
+	setTimeout(timeout: number): FuncComponent<T> {
 		this.timeout = timeout;
 		return this;
 	}

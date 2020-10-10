@@ -1,15 +1,15 @@
-import { GenericComponent } from '..';
+import { FuncComponent } from '..';
 import Builder from '../engine/builder';
 import { addTest } from './test-collector';
 import { WIDTH, HEIGHT } from './test-runner';
 
 addTest('BuilderTest', (scene, onFinish) => {
 	let builder = new Builder(scene);
-	builder.withComponent(() => new GenericComponent('').doOnUpdate((cmp, delta) => cmp.owner.pixiObj.rotation += 0.0001 * delta * cmp.owner.id));
+	builder.withComponent(() => new FuncComponent('').doOnUpdate((cmp, delta) => cmp.owner.pixiObj.rotation += 0.0001 * delta * cmp.owner.id));
 	builder.anchor(0.5, 0.5);
 
 	let finishedComponents = 0;
-	builder.withComponent(() => new GenericComponent('').setTimeout(Math.random() * 3000).doOnFinish(() => {
+	builder.withComponent(() => new FuncComponent('').setTimeout(Math.random() * 3000).doOnFinish(() => {
 		finishedComponents++;
 		if (finishedComponents === 100) {
 			// we have all
@@ -40,7 +40,7 @@ addTest('BuilderTest2', (scene, onFinish) => {
 			.asText('CHILD2', new PIXI.TextStyle({ fontSize: 35, fill: '#00F' }))
 	);
 	builder.withName('text').asText('PARENT', new PIXI.TextStyle({ fontSize: 80, fill: '#F00' }));
-	builder.withComponent(() => new GenericComponent('').doOnUpdate((cmp, delta) => cmp.owner.pixiObj.rotation += 0.001 * delta));
+	builder.withComponent(() => new FuncComponent('').doOnUpdate((cmp, delta) => cmp.owner.pixiObj.rotation += 0.001 * delta));
 	builder.anchor(0.5, 0.5);
 	builder.localPos(WIDTH / 2, HEIGHT / 2).withParent(scene.stage).build();
 
@@ -60,15 +60,15 @@ addTest('Builder component init test', (scene, onFinish) => {
 	let builder = new Builder(scene);
 	builder.withChild(
 		new Builder(scene)
-			.withComponent(new GenericComponent('').doOnInit(() => initOrder.push('CHILD1')))
+			.withComponent(new FuncComponent('').doOnInit(() => initOrder.push('CHILD1')))
 			.asContainer()
 	).withChild(
 		new Builder(scene)
-			.withComponent(new GenericComponent('').doOnInit(() => initOrder.push('CHILD2')))
+			.withComponent(new FuncComponent('').doOnInit(() => initOrder.push('CHILD2')))
 			.asContainer()
 	);
 	builder.asContainer();
-	builder.withComponent(() => new GenericComponent('').doOnInit(() => initOrder.push('PARENT')));
+	builder.withComponent(() => new FuncComponent('').doOnInit(() => initOrder.push('PARENT')));
 	builder.withParent(scene.stage).build();
 
 	scene.invokeWithDelay(500, () => {

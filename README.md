@@ -4,11 +4,9 @@ A tiny component-oriented game engine integrated with PixiJS gfx library
 
 ## Installation
 
-Install <a href="https://www.npmjs.com/" target="_blank">NPM package manager</a> and write following commands:
-
 ```bash
 npm install
-npm start
+npm run examples
 ```
 
 Default listening port is `1234`. You can navigate to any `html` file that is inside `examples` folder, for instance `localhost:1234/rotation.html`.

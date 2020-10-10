@@ -1,4 +1,4 @@
-import { Graphics, GenericComponent } from '..';
+import { Graphics, FuncComponent } from '..';
 import ChainComponent from '../components/chain-component';
 import Builder from '../engine/builder';
 import { addTest } from './test-collector';
@@ -11,26 +11,26 @@ addTest('RotationTest', (scene, onFinish) => {
 	gfx.position.set(300, 300);
 	gfx.endFill();
 	scene.stage.pixiObj.addChild(gfx);
-	gfx.addComponent(new GenericComponent('').doOnUpdate((cmp, delta) => gfx.rotation += delta * 0.001));
+	gfx.addComponent(new FuncComponent('').doOnUpdate((cmp, delta) => gfx.rotation += delta * 0.001));
 	scene.invokeWithDelay(1500, () => {
 		onFinish(true);
 	});
 });
 
 
-addTest('GenericComponentTest', (scene, onFinish) => {
+addTest('FuncComponentTest', (scene, onFinish) => {
 	let token = 0;
 	new Builder(scene)
 		.localPos(300, 300)
 		.anchor(0.5)
 		.withName('text')
 		.asText('GENERIC', new PIXI.TextStyle({ fontSize: 35, fill: '#FFF' }))
-		.withComponent(new GenericComponent('tint').doOnUpdate((cmp) => cmp.owner.asText().tint = 0xFFFF + Math.floor(Math.random() * 0xFF))) // animation, not important for the test
-		.withComponent(new GenericComponent('gencmp').doOnMessage('msg_example', () => token++))
+		.withComponent(new FuncComponent('tint').doOnUpdate((cmp) => cmp.owner.asText().tint = 0xFFFF + Math.floor(Math.random() * 0xFF))) // animation, not important for the test
+		.withComponent(new FuncComponent('gencmp').doOnMessage('msg_example', () => token++))
 		.withComponent(new ChainComponent().waitTime(1000).call((cmp) => cmp.sendMessage('msg_example')).call((cmp) => cmp.sendMessage('msg_example')))
 		.withParent(scene.stage).build();
 
-	// chain component will fire two messages that should be captured by GenericComponent and token var should be increased
+	// chain component will fire two messages that should be captured by FuncComponent and token var should be increased
 
 	scene.invokeWithDelay(2000, () => {
 		if (token === 2) {
@@ -41,19 +41,19 @@ addTest('GenericComponentTest', (scene, onFinish) => {
 	});
 });
 
-addTest('GenericComponentTest2', (scene, onFinish) => {
+addTest('FuncComponentTest2', (scene, onFinish) => {
 	let token = 0;
 	new Builder(scene)
 		.localPos(300, 300)
 		.anchor(0.5)
 		.withName('text')
 		.asText('GENERIC 2', new PIXI.TextStyle({ fontSize: 35, fill: '#0FF' }))
-		.withComponent(new GenericComponent('tint').doOnUpdate((cmp) => cmp.owner.asText().tint = 0x0000 + Math.floor(Math.random() * 0xFF))) // animation, not important for the test
-		.withComponent(new GenericComponent('gencmp').doOnMessageOnce('msg_example', () => token++))
+		.withComponent(new FuncComponent('tint').doOnUpdate((cmp) => cmp.owner.asText().tint = 0x0000 + Math.floor(Math.random() * 0xFF))) // animation, not important for the test
+		.withComponent(new FuncComponent('gencmp').doOnMessageOnce('msg_example', () => token++))
 		.withComponent(new ChainComponent().waitTime(1000).call((cmp) => cmp.sendMessage('msg_example')).call((cmp) => cmp.sendMessage('msg_example')))
 		.withParent(scene.stage).build();
 
-	// chain component will fire two messages that should be captured by GenericComponent only once
+	// chain component will fire two messages that should be captured by FuncComponent only once
 
 	scene.invokeWithDelay(2000, () => {
 		if (token === 1) {
@@ -64,7 +64,7 @@ addTest('GenericComponentTest2', (scene, onFinish) => {
 	});
 });
 
-addTest('GenericComponentConditionalTest', (scene, onFinish) => {
+addTest('FuncComponentConditionalTest', (scene, onFinish) => {
 	let token = 0;
 	let tokenTag = 0;
 	let tokenName = 0;
@@ -75,8 +75,8 @@ addTest('GenericComponentConditionalTest', (scene, onFinish) => {
 		.anchor(0.5)
 		.withName('text')
 		.asText('GENERIC CONDITIONAL', new PIXI.TextStyle({ fontSize: 35, fill: '#0FF' }))
-		.withComponent(new GenericComponent('tint').doOnUpdate((cmp) => cmp.owner.asText().tint = Math.floor(Math.random() * 0xFF) << 16 + 0xFFFF)) // animation, not important for the test
-		.withComponent(new GenericComponent('gencmp')
+		.withComponent(new FuncComponent('tint').doOnUpdate((cmp) => cmp.owner.asText().tint = Math.floor(Math.random() * 0xFF) << 16 + 0xFFFF)) // animation, not important for the test
+		.withComponent(new FuncComponent('gencmp')
 			.doOnMessageConditional('msg_conditional', {}, () => token++) // empty condition, should be invoked every time
 			.doOnMessageConditional('msg_conditional', { ownerTag: 'test_tag' }, () => tokenTag++) // increase only if the object has test_tag tag
 			.doOnMessageConditional('msg_conditional', { ownerName: 'test_name' }, () => tokenName++) // shouldn't be invoked

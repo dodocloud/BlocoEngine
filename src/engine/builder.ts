@@ -31,7 +31,7 @@ interface ObjectProps {
 	fontSize?: number; // bitmaptext
 	fontColor?: number; // bitmaptext
 	geometry?: PIXI.Geometry; // mesh
-	shader?: PIXI.MeshMaterial; // mesh
+	shader?: PIXI.Shader | PIXI.MeshMaterial; // mesh
 }
 
 interface BuilderProps {
@@ -285,21 +285,21 @@ export default class Builder {
 		return this;
 	}
 
-	asMesh(geometry: PIXI.Geometry, shader: PIXI.MeshMaterial): Builder {
+	asMesh(geometry: PIXI.Geometry, shader: PIXI.Shader | PIXI.MeshMaterial): Builder {
 		this.objectProps = {
 			geometry, shader, type: ObjectType.Mesh
 		};
 		return this;
 	}
 
-	fillObjectKeepData(obj: Container) {
-		this.objectToBuild = obj;
-		return this.process(false);
-	}
-
-	fillObject(obj: Container) {
+	buildInto(obj: Container) {
 		this.objectToBuild = obj;
 		return this.process(true);
+	}
+
+	buildIntoKeepData(obj: Container) {
+		this.objectToBuild = obj;
+		return this.process(false);
 	}
 
 	buildKeepData<T extends Container>(): T {

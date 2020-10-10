@@ -1,4 +1,4 @@
-import { Graphics, Container, GenericComponent, Message } from '..';
+import { Graphics, Container, FuncComponent, Message } from '..';
 import Builder from '../engine/builder';
 import { Messages } from '../engine/constants';
 import { addTest } from './test-collector';
@@ -14,7 +14,7 @@ addTest('MessageNotifyTest', (scene, onFinish, tick) => {
 
 	let token = 0;
 	// update token with every new message
-	scene.addGlobalComponent(new GenericComponent('')
+	scene.addGlobalComponent(new FuncComponent('')
 		.doOnMessage(Messages.ATTRIBUTE_ADDED, () => token++)
 		.doOnMessage(Messages.ATTRIBUTE_CHANGED, () => token++)
 		.doOnMessage(Messages.ATTRIBUTE_REMOVED, () => token++)
@@ -31,7 +31,7 @@ addTest('MessageNotifyTest', (scene, onFinish, tick) => {
 	tick();
 
 	new Builder(scene)
-		.withComponent(new GenericComponent('dummy'))
+		.withComponent(new FuncComponent('dummy'))
 		.withAttribute('dummy_attr', 12345)
 		.withFlag(123)
 		.withParent(scene.stage)
@@ -58,9 +58,9 @@ addTest('MessageNotifyTest2', (scene, onFinish, tick) => {
 	let token = 0;
 	scene.stage.assignAttribute('attr_1', 1);
 	scene.stage.asContainer().addChild(new Graphics('CHILD'));
-	scene.stage.addComponent(new GenericComponent('GENERIC1'));
+	scene.stage.addComponent(new FuncComponent('GENERIC1'));
 	// update token with every new message
-	scene.addGlobalComponent(new GenericComponent('')
+	scene.addGlobalComponent(new FuncComponent('')
 		.doOnMessage(Messages.ATTRIBUTE_ADDED, () => token++)
 		.doOnMessage(Messages.ATTRIBUTE_CHANGED, () => token++)
 		.doOnMessage(Messages.ATTRIBUTE_REMOVED, () => token++)
@@ -89,7 +89,7 @@ addTest('MessageNotifyTest2', (scene, onFinish, tick) => {
 	scene.stage.asContainer().addChild(new Graphics('CHILD_2')); // object added
 	scene.stage.asContainer().destroyChild(scene.findObjectByName('CHILD').asContainer()); // object removed
 	scene.stage.stateId = 12; // state changed
-	scene.stage.addComponent(new GenericComponent('GENERIC2')); // component added
+	scene.stage.addComponent(new FuncComponent('GENERIC2')); // component added
 	scene.stage.removeComponent(scene.stage.findComponentByName('GENERIC1')); // component removed
 
 	scene.invokeWithDelay(500, () => { // wait a few frames
@@ -105,7 +105,7 @@ addTest('FinishedComponentMessageTest', (scene, onFinish) => {
 	let token = 0;
 
 	// component that will be reused by another object when removed from the first one
-	let recyclableComponent = new GenericComponent('recyclable')
+	let recyclableComponent = new FuncComponent('recyclable')
 		.doOnMessage('TOKEN_MSG', () => token++);
 
 	// add object

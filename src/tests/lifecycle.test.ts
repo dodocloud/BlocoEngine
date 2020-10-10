@@ -1,4 +1,4 @@
-import { Graphics, GenericComponent, Container } from '..';
+import { Graphics, FuncComponent, Container } from '..';
 import { addTest } from './test-collector';
 import { WIDTH, HEIGHT } from './test-runner';
 import { ComponentState } from '../engine/component';
@@ -9,7 +9,7 @@ addTest('Component lifecycle test', (scene, onFinish, tick) => {
 	const sequence = [];
 	const sequenceStates: ComponentState[] = [];
 
-	const cmp = new GenericComponent('')
+	const cmp = new FuncComponent('')
 		.setFixedFrequency(60)
 		.doOnInit((cmp) => {
 			sequence.push('init');
@@ -70,7 +70,7 @@ addTest('ComponentUpdateTest', (scene, onFinish) => {
 	gfx.endFill();
 	scene.stage.pixiObj.addChild(gfx);
 	gfx.scale.x = 0;
-	gfx.addComponent(new GenericComponent('').doOnFixedUpdate(() => gfx.scale.x++).setFixedFrequency(1)); // 1 per second
+	gfx.addComponent(new FuncComponent('').doOnFixedUpdate(() => gfx.scale.x++).setFixedFrequency(1)); // 1 per second
 	scene.invokeWithDelay(3500, () => {
 		let success = Math.floor(gfx.scale.x) === 3;
 		onFinish(success, 'Wrong value: ' + gfx.scale.x);
@@ -85,7 +85,7 @@ addTest('FrequencyTest', (scene, onFinish) => {
 	gfx.position.set(WIDTH / 2, HEIGHT / 2);
 	gfx.endFill();
 	scene.stage.pixiObj.addChild(gfx);
-	gfx.addComponent(new GenericComponent('')
+	gfx.addComponent(new FuncComponent('')
 		.setFixedFrequency(0.5) // 1x in 2 seconds
 		.doOnFixedUpdate(() => gfx.scale.x /= 2));
 	scene.invokeWithDelay(2500, () => { // should run 1x
@@ -104,7 +104,7 @@ addTest('FrequencyTest2', (scene, onFinish) => {
 	gfx.position.set(WIDTH / 2, HEIGHT / 2);
 	gfx.endFill();
 	scene.stage.pixiObj.addChild(gfx);
-	gfx.addComponent(new GenericComponent('')
+	gfx.addComponent(new FuncComponent('')
 		.setFixedFrequency(2) // 2x per second
 		.doOnFixedUpdate(() => gfx.scale.x /= 2));
 	scene.invokeWithDelay(1800, () => { // should run 3x: 500 1000 1500
@@ -123,7 +123,7 @@ addTest('FrequencyTest3', (scene, onFinish) => {
 	gfx.position.set(WIDTH / 2, HEIGHT / 2);
 	gfx.endFill();
 	scene.stage.pixiObj.addChild(gfx);
-	gfx.addComponent(new GenericComponent('')
+	gfx.addComponent(new FuncComponent('')
 		.setFixedFrequency(2) // 2x per second
 		.doOnFixedUpdate((cmp, delta) => {
 			gfx.scale.x *= (delta / 1000);
@@ -144,7 +144,7 @@ addTest('RecycleTest', (scene, onFinish) => {
 	let updateToken = 0;
 
 	// component that will be reused by another object when removed from the first one
-	let recyclableComponent = new GenericComponent('recyclable')
+	let recyclableComponent = new FuncComponent('recyclable')
 		.setFixedFrequency(1) // 1x per second
 		.doOnInit(() => initToken++)
 		.doOnRemove(() => removeToken++)
@@ -187,7 +187,7 @@ addTest('RecycleTest', (scene, onFinish) => {
 
 
 addTest('Child Component initialized', (scene, onFinish) => {
-	const components = [new GenericComponent('A'), new GenericComponent('B'), new GenericComponent('C')];
+	const components = [new FuncComponent('A'), new FuncComponent('B'), new FuncComponent('C')];
 	let builder = new Builder(scene);
 	builder.withChild(
 		new Builder(scene)
@@ -208,7 +208,7 @@ addTest('Child Component initialized', (scene, onFinish) => {
 });
 
 addTest('Components removed upon scene clear', (scene, onFinish, tick) => {
-	const components = [new GenericComponent('A'), new GenericComponent('B'), new GenericComponent('C')];
+	const components = [new FuncComponent('A'), new FuncComponent('B'), new FuncComponent('C')];
 	let builder = new Builder(scene);
 	builder.withChild(
 		new Builder(scene)
@@ -231,7 +231,7 @@ addTest('Components removed upon scene clear', (scene, onFinish, tick) => {
 });
 
 addTest('Children destroyed with their grandparent', (scene, onFinish, tick) => {
-	const components = [new GenericComponent('A'), new GenericComponent('B'), new GenericComponent('C')];
+	const components = [new FuncComponent('A'), new FuncComponent('B'), new FuncComponent('C')];
 	let builder = new Builder(scene);
 	builder.withChild(
 		new Builder(scene)
@@ -256,7 +256,7 @@ addTest('Children destroyed with their grandparent', (scene, onFinish, tick) => 
 });
 
 addTest('Children destroyed with their parent', (scene, onFinish, tick) => {
-	const components = [new GenericComponent('A'), new GenericComponent('B'), new GenericComponent('C')];
+	const components = [new FuncComponent('A'), new FuncComponent('B'), new FuncComponent('C')];
 	let builder = new Builder(scene);
 	builder.withChild(
 		new Builder(scene)
@@ -281,7 +281,7 @@ addTest('Children destroyed with their parent', (scene, onFinish, tick) => {
 });
 
 addTest('Components removed upon destroy', (scene, onFinish, tick) => {
-	const components = [new GenericComponent('A')];
+	const components = [new FuncComponent('A')];
 	let builder = new Builder(scene);
 	builder.withChild(
 		new Builder(scene)
@@ -299,14 +299,14 @@ addTest('Components removed upon destroy', (scene, onFinish, tick) => {
 
 addTest('All components updated when adding a new one', (scene, onFinish, tick) => {
 	const updates = [];
-	const components = [new GenericComponent('A').doOnUpdate(() => updates.push('A')),
-	new GenericComponent('B').doOnUpdate(() => updates.push('B')),
-	new GenericComponent('C').doOnUpdate((cmp) => {  // insert a new component in the middle of the loop
+	const components = [new FuncComponent('A').doOnUpdate(() => updates.push('A')),
+	new FuncComponent('B').doOnUpdate(() => updates.push('B')),
+	new FuncComponent('C').doOnUpdate((cmp) => {  // insert a new component in the middle of the loop
 		updates.push('C');
-		cmp.owner.addComponentAndRun(new GenericComponent('F').doOnUpdate(() => updates.push('F')));
+		cmp.owner.addComponentAndRun(new FuncComponent('F').doOnUpdate(() => updates.push('F')));
 	}),
-	new GenericComponent('D').doOnUpdate(() => updates.push('D')),
-	new GenericComponent('E').doOnUpdate(() => updates.push('E'))];
+	new FuncComponent('D').doOnUpdate(() => updates.push('D')),
+	new FuncComponent('E').doOnUpdate(() => updates.push('E'))];
 	let builder = new Builder(scene);
 	builder.asContainer().withComponents(components);
 	builder.withParent(scene.stage).build();
@@ -320,14 +320,14 @@ addTest('All components updated when adding a new one', (scene, onFinish, tick) 
 
 addTest('All components updated when removing an old one', (scene, onFinish, tick) => {
 	const updates = [];
-	const components = [new GenericComponent('A').doOnUpdate(() => updates.push('A')),
-	new GenericComponent('B').doOnUpdate(() => updates.push('B')),
-	new GenericComponent('C').doOnUpdate((cmp) => {
+	const components = [new FuncComponent('A').doOnUpdate(() => updates.push('A')),
+	new FuncComponent('B').doOnUpdate(() => updates.push('B')),
+	new FuncComponent('C').doOnUpdate((cmp) => {
 		updates.push('C');
 		cmp.finish();
 	}),
-	new GenericComponent('D').doOnUpdate(() => updates.push('D')),
-	new GenericComponent('E').doOnUpdate(() => updates.push('E'))];
+	new FuncComponent('D').doOnUpdate(() => updates.push('D')),
+	new FuncComponent('E').doOnUpdate(() => updates.push('E'))];
 	let builder = new Builder(scene);
 	builder.asContainer().withComponents(components);
 	builder.withParent(scene.stage).build();

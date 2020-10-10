@@ -9,10 +9,10 @@ export enum PointerMessages {
 }
 
 export interface PointerInputComponentProps {
-	handleClick: boolean;
-	handlePointerDown: boolean;
-	handlePointerOver: boolean;
-	handlePointerRelease: boolean;
+	handleClick?: boolean;
+	handlePointerDown?: boolean;
+	handlePointerOver?: boolean;
+	handlePointerRelease?: boolean;
 }
 
 /**
@@ -83,7 +83,7 @@ export class PointerInputComponent extends Component<PointerInputComponentProps>
 
 	protected handleStart = (evt: TouchEvent | MouseEvent) => {
 		evt.preventDefault();
-		let isTouch = evt instanceof TouchEvent;
+		let isTouch = (window.TouchEvent && evt instanceof TouchEvent);
 		if (isTouch && (evt as TouchEvent).changedTouches.length === 1) {
 			// only single-touch
 			this.lastTouch = (evt as TouchEvent).changedTouches[0];
@@ -111,7 +111,7 @@ export class PointerInputComponent extends Component<PointerInputComponentProps>
 	protected handleEnd = (evt: TouchEvent | MouseEvent) => {
 		evt.preventDefault();
 		let posX, posY;
-		let isTouch = evt instanceof TouchEvent;
+		let isTouch = (window.TouchEvent && evt instanceof TouchEvent);
 		if (this.lastTouch != null) {
 			if (isTouch && (evt as TouchEvent).changedTouches.length === 1) {
 				posX = (evt as TouchEvent).changedTouches[0].pageX;

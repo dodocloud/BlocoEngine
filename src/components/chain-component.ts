@@ -329,6 +329,7 @@ export default class ChainComponent extends Component<void> {
 
 	/**
 	 * Waits until given component has finished
+	 * If provided component doesn't have an owner, it will be attached to the owner of this chain-component
 	 * @param component or function that returns this component
 	 */
 	waitFor(component: Component<any> | Component<any>[] | Func<void, Component<any>> | Func<void, Component<any>[]>): ChainComponent {

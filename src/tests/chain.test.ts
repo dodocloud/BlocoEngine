@@ -1,4 +1,4 @@
-import { Graphics, GenericComponent, Message } from '..';
+import { Graphics, FuncComponent, Message } from '..';
 import ChainComponent from '../components/chain-component';
 import { addTest } from './test-collector';
 
@@ -12,12 +12,12 @@ addTest('ChainComponentTest', (scene, onFinish) => {
 	gfx.endFill();
 	scene.stage.pixiObj.addChild(gfx);
 	let tokens = 0;
-	gfx.addComponent(new GenericComponent('').doOnMessage('TOKEN', () => tokens++));
+	gfx.addComponent(new FuncComponent('').doOnMessage('TOKEN', () => tokens++));
 	gfx.addComponent(new ChainComponent()
 		.beginRepeat(2)
-		.waitFor(() => new GenericComponent('').doOnUpdate((cmp, delta) => gfx.rotation += 0.1 * delta).setTimeout(500))
-		.waitFor(() => new GenericComponent('').doOnUpdate((cmp, delta) => gfx.rotation -= 0.1 * delta).setTimeout(500))
-		.addComponent(() => new GenericComponent('').doOnUpdate((cmp, delta) => gfx.rotation += 0.01 * delta).setTimeout(1000).doOnFinish((cmp) => cmp.sendMessage('TOKEN')))
+		.waitFor(() => new FuncComponent('').doOnUpdate((cmp, delta) => gfx.rotation += 0.1 * delta).setTimeout(500))
+		.waitFor(() => new FuncComponent('').doOnUpdate((cmp, delta) => gfx.rotation -= 0.1 * delta).setTimeout(500))
+		.addComponent(() => new FuncComponent('').doOnUpdate((cmp, delta) => gfx.rotation += 0.01 * delta).setTimeout(1000).doOnFinish((cmp) => cmp.sendMessage('TOKEN')))
 		.waitForMessage('TOKEN')
 		.endRepeat()
 		.call(() => {
@@ -65,7 +65,7 @@ addTest('ChainComponentTest3', (scene, onFinish) => {
 addTest('ChainComponentTest4', (scene, onFinish) => {
 	let token = 0;
 
-	let cmpGenerator = () => new GenericComponent('generic').doOnMessage('STOP', (cmp) => {
+	let cmpGenerator = () => new FuncComponent('generic').doOnMessage('STOP', (cmp) => {
 		token++;
 		cmp.finish();
 	});
@@ -139,11 +139,11 @@ addTest('Chain Wait for all', (scene, onFinish) => {
 
 	const chain = new ChainComponent()
 		.waitFor([
-			new GenericComponent('A').doOnUpdate((cmp) => {
+			new FuncComponent('A').doOnUpdate((cmp) => {
 				token++;
 				cmp.finish();
 			}),
-			new GenericComponent('B').doOnUpdate((cmp) => {
+			new FuncComponent('B').doOnUpdate((cmp) => {
 				token++;
 				cmp.finish();
 			})]);
@@ -159,15 +159,15 @@ addTest('Chain Wait for first', (scene, onFinish) => {
 
 	const chain = new ChainComponent()
 		.waitForFirst([
-			new GenericComponent('A').doOnUpdate((cmp) => {
+			new FuncComponent('A').doOnUpdate((cmp) => {
 				token++;
 				cmp.finish();
 			}),
-			new GenericComponent('B').doOnUpdate((cmp) => {
+			new FuncComponent('B').doOnUpdate((cmp) => {
 				token++;
 				cmp.finish();
 			}),
-			new GenericComponent('C').doOnUpdate(() => {
+			new FuncComponent('C').doOnUpdate(() => {
 				token++; // endless
 			})]);
 

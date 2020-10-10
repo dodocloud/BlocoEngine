@@ -15,7 +15,7 @@ export enum ComponentState {
 /**
  * Component that defines a functional behavior of an entity which is attached to
  */
-export default class Component<T> {
+export default class Component<T = void> {
 	private static idCounter = 0;
 
 	// owner object of this component

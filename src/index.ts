@@ -10,7 +10,7 @@ import Scene from './engine/scene';
 import AsyncComponent from './components/async-component';
 import ChainComponent from './components/chain-component';
 import DebugComponent from './components/debug-component';
-import { GenericComponent } from './components/generic-component';
+import { FuncComponent } from './components/func-component';
 import { KeyInputComponent, Keys } from './components/key-input-component';
 import { VirtualGamepadComponent, GamepadButtons, GamepadKeyMapper } from './components/virtual-gamepad-component';
 import { PointerInputComponent, PointerMessages } from './components/pointer-input-component';
@@ -30,7 +30,7 @@ export {
 	AsyncComponent,
 	ChainComponent,
 	DebugComponent,
-	GenericComponent,
+	FuncComponent,
 	KeyInputComponent, Keys,
 	VirtualGamepadComponent, GamepadButtons, GamepadKeyMapper,
 	PointerInputComponent, PointerMessages,

@@ -6,8 +6,8 @@
   "contributors": [
     "Adam Vesecky <vesecky.adam@gmail.com>"
   ],
-  "main": "./dist/bloco.js",
-  "types": "./dist/bloco.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "homepage": "https://github.com/dodocloud/blocojs",
   "license": "MIT",
   "repository": {
@@ -20,7 +20,8 @@
     "prepublish": "tsc"
   },
   "files": [
-    "src/"
+    "dist",
+    "src"
   ],
   "dependencies": {
     "pixi.js": "^5.3.3"
