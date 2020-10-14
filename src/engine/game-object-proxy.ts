@@ -109,7 +109,7 @@ export default class GameObjectProxy {
 			if (this._internalState === GameObjectState.DETACHED) {
 				throw new Error('Can\'t run a component upon a detached object!');
 			}
-			this.initComponent(component);
+			this.initNewComponent(component);
 			if (!this.waitingForUpdate) {
 				// run only if this object has already run within the current tick
 				component.onUpdate(this.scene.currentDelta, this.scene.currentAbsolute);
@@ -129,6 +129,8 @@ export default class GameObjectProxy {
 		}
 		cmp.onDetach();
 		cmp._cmpState = ComponentState.DETACHED;
+		cmp.onRemove();
+		cmp._cmpState = ComponentState.REMOVED;
 		cmp._lastFixedUpdate = 0;
 		cmp.owner = null;
 
@@ -348,7 +350,7 @@ export default class GameObjectProxy {
 		this.lastAbsolute = absolute;
 	}
 
-	initComponent(component: Component<any>) {
+	initNewComponent(component: Component<any>) {
 		if (!this.isOnScene) {
 			throw new Error('The object must be on the scene before its components are initialized');
 		}
@@ -360,10 +362,9 @@ export default class GameObjectProxy {
 		this.components.set(component.id, component);
 		this.scene._onComponentAdded(component, this);
 
-		if(component._cmpState === ComponentState.NEW) { 
-			component.onInit();
-			component._cmpState = ComponentState.INITIALIZED;
-		}
+		component.onInit();
+		component._cmpState = ComponentState.INITIALIZED;
+
 		component.onAttach();
 		component._cmpState = ComponentState.RUNNING;
 	}
@@ -376,7 +377,7 @@ export default class GameObjectProxy {
 			toAdd.forEach(cmp => {
 				// at first, add it to the set so it can be looked up
 				this.components.set(cmp.id, cmp);
-				this.initComponent(cmp);
+				this.initNewComponent(cmp);
 			});
 		}
 	}

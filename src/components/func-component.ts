@@ -23,6 +23,7 @@ export class FuncComponent<T = void> extends Component<T> {
 	private onUpdateFunc: (cmp: Component<T>, delta: number, absolute: number) => void = null;
 	private onFixedUpdateFunc: (cmp: Component<T>, delta: number, absolute: number) => void = null;
 	private onDetachFunc: (cmp: Component<T>) => void = null;
+	private onRemoveFunc: (cmp: Component<T>) => void = null;
 	private onFinishFunc: (cmp: Component<T>) => void = null;
 
 	/**
@@ -104,6 +105,14 @@ export class FuncComponent<T = void> extends Component<T> {
 	 */
 	doOnDetach(func: (cmp: FuncComponent<T>) => void): FuncComponent<T> {
 		this.onDetachFunc = func;
+		return this;
+	}
+
+	/**
+	 * Registers a function that will be invoked for onRemove()
+	 */
+	doOnRemove(func: (cmp: FuncComponent<T>) => void): FuncComponent<T> {
+		this.onRemoveFunc = func;
 		return this;
 	}
 
@@ -193,6 +202,12 @@ export class FuncComponent<T = void> extends Component<T> {
 	onDetach() {
 		if (this.onDetachFunc != null) {
 			this.onDetachFunc(this);
+		}
+	}
+
+	onRemove() {
+		if(this.onRemoveFunc != null) {
+			this.onRemoveFunc(this);
 		}
 	}
 
