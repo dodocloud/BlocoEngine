@@ -494,6 +494,7 @@ export default class Scene {
 
 	_onComponentDetached(component: Component<any>) {
 		this.subscribers.removeItem(component);
+		this.sendMessage(new Message(Messages.COMPONENT_DETACHED, component, component.owner));
 	}
 
 	_onComponentRemoved(component: Component<any>, obj: GameObjectProxy) {

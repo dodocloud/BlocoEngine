@@ -43,7 +43,7 @@ export interface EngineConfig extends SceneConfig {
 
 const defaultConfig: EngineConfig = {
 	...sceneDefaultConfig,
-	resizeToScreen: true,
+	resizeToScreen: false,
 	transparent: false,
 	backgroundColor: 0x000000,
 	antialias: true,

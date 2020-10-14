@@ -22,7 +22,6 @@ export class FuncComponent<T = void> extends Component<T> {
 	private onMessageConditionalHandlers = new Map<string, Set<MessageCaptureContext<T>>>();
 	private onUpdateFunc: (cmp: Component<T>, delta: number, absolute: number) => void = null;
 	private onFixedUpdateFunc: (cmp: Component<T>, delta: number, absolute: number) => void = null;
-	private onRemoveFunc: (cmp: Component<T>) => void = null;
 	private onDetachFunc: (cmp: Component<T>) => void = null;
 	private onFinishFunc: (cmp: Component<T>) => void = null;
 
@@ -97,14 +96,6 @@ export class FuncComponent<T = void> extends Component<T> {
 	 */
 	doOnUpdate(func: (cmp: FuncComponent<T>, delta: number, absolute: number) => void): FuncComponent<T> {
 		this.onUpdateFunc = func;
-		return this;
-	}
-
-	/**
-	 * Registers a function that will be invoked for onRemove()
-	 */
-	doOnRemove(func: (cmp: FuncComponent<T>) => void): FuncComponent<T> {
-		this.onRemoveFunc = func;
 		return this;
 	}
 
@@ -196,12 +187,6 @@ export class FuncComponent<T = void> extends Component<T> {
 
 		if (this.onUpdateFunc != null) {
 			this.onUpdateFunc(this, delta, absolute);
-		}
-	}
-
-	onRemove() {
-		if (this.onRemoveFunc != null) {
-			this.onRemoveFunc(this);
 		}
 	}
 

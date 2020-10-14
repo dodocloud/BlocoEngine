@@ -129,8 +129,6 @@ export default class GameObjectProxy {
 		}
 		cmp.onDetach();
 		cmp._cmpState = ComponentState.DETACHED;
-		cmp.onRemove();
-		cmp._cmpState = ComponentState.REMOVED;
 		cmp._lastFixedUpdate = 0;
 		cmp.owner = null;
 
@@ -297,6 +295,9 @@ export default class GameObjectProxy {
 	 * The child will initialize all components just here
 	 */
 	onChildAdded(object: GameObjectProxy) {
+		if(object.internalState === GameObjectState.ATTACHED) {
+			throw new Error(`This object has already been added to the scene: ${object.pixiObj.name}`);
+		}
 		object.scene = this.scene;
 		object.attach();
 	}
@@ -358,8 +359,11 @@ export default class GameObjectProxy {
 		component.owner = this.pixiObj;
 		this.components.set(component.id, component);
 		this.scene._onComponentAdded(component, this);
-		component.onInit();
-		component._cmpState = ComponentState.INITIALIZED;
+
+		if(component._cmpState === ComponentState.NEW) { 
+			component.onInit();
+			component._cmpState = ComponentState.INITIALIZED;
+		}
 		component.onAttach();
 		component._cmpState = ComponentState.RUNNING;
 	}
@@ -403,9 +407,11 @@ export default class GameObjectProxy {
 
 		// detach all components
 		this.components.forEach(cmp => {
-			this.scene._onComponentDetached(cmp);
-			cmp.onDetach();
-			cmp._cmpState = ComponentState.DETACHED;
+			if(cmp._cmpState !== ComponentState.DETACHED) {
+				this.scene._onComponentDetached(cmp);
+				cmp.onDetach();
+				cmp._cmpState = ComponentState.DETACHED;
+			}
 		});
 
 		this.scene._onObjectRemoved(this);

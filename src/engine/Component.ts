@@ -9,7 +9,6 @@ export enum ComponentState {
 	RUNNING = 2,
 	DETACHED = 3,
 	FINISHED = 4,
-	REMOVED = 5
 }
 
 /**
@@ -54,19 +53,19 @@ export default class Component<T = void> {
 	}
 
 	public get isCompleted() {
-		return this._cmpState === ComponentState.FINISHED || this._cmpState === ComponentState.REMOVED;
+		return this._cmpState === ComponentState.FINISHED || this._cmpState === ComponentState.DETACHED;
 	}
 
 
 	/**
-	 * Called when the component is being added to a new object
+	 * Called when the component is being added to a new object FOR THE FIRST TIME
 	 */
 	onInit() {
 		// override
 	}
 
 	/**
-	 * Called when the component is being added to the scene
+	 * Called when the component is being added to an object
 	 */
 	onAttach() {
 		// override
@@ -95,17 +94,9 @@ export default class Component<T = void> {
 	}
 
 	/**
-	 * Called either before removal or before 
-	 * the owner object gets detached from the scene
+	 * Called before the owner object gets detached from the scene
 	 */
 	onDetach() {
-
-	}
-
-	/**
-	 * Called before removal from its owner
-	 */
-	onRemove() {
 		// override
 	}
 
@@ -145,13 +136,18 @@ export default class Component<T = void> {
 
 	/**
 	 * Aborts the component and immediately removes it from its object
-	 * Will call onFinish(), onDetach() and onRemove() 
+	 * Will call onFinish() and onDetach() 
 	 */
-	finish() {
-		if (this._cmpState === ComponentState.RUNNING && this.owner) {
-			this.onFinish();
-			this._cmpState = ComponentState.FINISHED;
-			this.owner.removeComponent(this);
+	finish(remove: boolean = true) {
+		if (this.owner) {
+			if(this._cmpState === ComponentState.RUNNING) {
+				this.onFinish();
+				this._cmpState = ComponentState.FINISHED;
+			}
+
+			if(this._cmpState === ComponentState.FINISHED && remove) {
+				this.owner.removeComponent(this);
+			}
 		}
 	}
 }

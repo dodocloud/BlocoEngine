@@ -3,6 +3,7 @@ import { addTest } from './test-collector';
 import { WIDTH, HEIGHT } from './test-runner';
 import { ComponentState } from '../engine/component';
 import Builder from '../engine/builder';
+import Message from '../engine/message';
 
 addTest('Component lifecycle test', (scene, onFinish, tick) => {
 	const container = new Container('container');
@@ -26,9 +27,6 @@ addTest('Component lifecycle test', (scene, onFinish, tick) => {
 		}).doOnDetach((cmp) => {
 			sequence.push('detach');
 			sequenceStates.push(cmp.cmpState);
-		}).doOnRemove((cmp) => {
-			sequence.push('remove');
-			sequenceStates.push(cmp.cmpState);
 		}).doOnFinish((cmp) => {
 			sequence.push('finish');
 			sequenceStates.push(cmp.cmpState);
@@ -47,17 +45,16 @@ addTest('Component lifecycle test', (scene, onFinish, tick) => {
 	tick();
 	container.destroy();
 
-	const expectedSequence = ['init', 'attach', 'update', 'fixed', 'finish', 'detach', 'remove', 'init', 'attach',
-		'update', 'fixed', 'detach', 'attach', 'update', 'fixed', 'finish', 'detach', 'remove'];
+	const expectedSequence = ['init', 'attach', 'update', 'fixed', 'finish', 'detach', 'attach',
+		'update', 'fixed', 'detach', 'attach', 'update', 'fixed', 'finish', 'detach'];
 	const expectedSequenceStates = [ComponentState.NEW, ComponentState.INITIALIZED, ComponentState.RUNNING, ComponentState.RUNNING, ComponentState.RUNNING,
-	ComponentState.FINISHED, ComponentState.DETACHED, ComponentState.REMOVED, ComponentState.INITIALIZED, ComponentState.RUNNING, ComponentState.RUNNING,
-	ComponentState.RUNNING, ComponentState.DETACHED, ComponentState.RUNNING, ComponentState.RUNNING, ComponentState.RUNNING, ComponentState.FINISHED,
-	ComponentState.DETACHED];
+	ComponentState.FINISHED, ComponentState.DETACHED, ComponentState.RUNNING, ComponentState.RUNNING,
+	ComponentState.RUNNING, ComponentState.DETACHED, ComponentState.RUNNING, ComponentState.RUNNING, ComponentState.RUNNING, ComponentState.FINISHED];
 
 	const sequenceEqual = expectedSequence.filter((val, index) => sequence[index] !== val).length === 0;
 	const sequenceStateEqual = expectedSequenceStates.filter((val, index) => sequenceStates[index] !== val).length === 0;
 
-	onFinish(sequenceEqual && sequenceStateEqual, 'Lifecycle mismatch: Expected sequence ' + expectedSequence.join(', ') + '; given: ' + sequence.join(', '));
+	onFinish(sequenceEqual && sequenceStateEqual, 'Lifecycle mismatch: Expected sequence ' + expectedSequence.join(', ') + '; given: ' + sequenceStates.join(', '));
 });
 
 
@@ -137,9 +134,69 @@ addTest('FrequencyTest3', (scene, onFinish) => {
 	});
 });
 
+
+addTest('FinishWithoutRemovalTest', (scene, onFinish) => {
+
+	let initToken = 0;
+	let attachToken = 0;
+	let finishToken = 0;
+	let messageToken = 0;
+	let updateToken = 0;
+	let detachToken = 0;
+
+	let component = new FuncComponent('myComponent')
+		.setFixedFrequency(1) // 1x per second
+		.doOnInit(() => initToken++)
+		.doOnAttach(() => attachToken++)
+		.doOnMessage('MSG_TEST', () => messageToken++)
+		.doOnDetach(() =>detachToken++)
+		.doOnFinish(() => finishToken++)
+		.doOnFixedUpdate(() => updateToken++);
+
+	// add object
+	let gfx = new Graphics('');
+	gfx.beginFill(0xEF05EF);
+	gfx.drawCircle(0, 0, 50);
+	gfx.position.set(WIDTH / 2, HEIGHT / 2);
+	gfx.endFill();
+	scene.stage.addChild(gfx);
+
+	gfx.addComponent(component); // init + attach
+
+	scene.callWithDelay(1200, () => { // update
+		// finish but don't remove from scene
+		component.finish(false);  // finish
+		// component should be still able to accept messages but no updates
+		scene.sendMessage(new Message('MSG_TEST')); // message++
+		// remove from the scene
+		component.finish(true); // detach++
+		// shouldn't accept messages
+		scene.sendMessage(new Message('MSG_TEST'));
+		scene.callWithDelay(1000, () => {
+			// re-add the component to the scene
+			gfx.addComponent(component); 
+			
+			scene.callWithDelay(1000, () => { // attach++
+				gfx.detach(); // detach++
+
+				// shouldn't accept messages
+				scene.sendMessage(new Message('MSG_TEST'));
+				scene.stage.addChild(gfx); // attach++
+	
+				let success = initToken === 1 && attachToken === 3 && messageToken === 1 && detachToken === 2 && finishToken === 1 && updateToken === 2;
+				if (success) {
+					onFinish(true);
+				} else {
+					onFinish(false, 'Wrong token value: ' + initToken + ':' + attachToken + ':' + messageToken + ':' + detachToken + ':' + finishToken +':' + updateToken);
+				}
+			});
+		});
+	});
+});
+
+
 addTest('RecycleTest', (scene, onFinish) => {
 	let initToken = 0;
-	let removeToken = 0;
 	let finishToken = 0;
 	let updateToken = 0;
 
@@ -147,7 +204,6 @@ addTest('RecycleTest', (scene, onFinish) => {
 	let recyclableComponent = new FuncComponent('recyclable')
 		.setFixedFrequency(1) // 1x per second
 		.doOnInit(() => initToken++)
-		.doOnRemove(() => removeToken++)
 		.doOnFinish(() => finishToken++)
 		.doOnFixedUpdate(() => updateToken++);
 
@@ -175,11 +231,11 @@ addTest('RecycleTest', (scene, onFinish) => {
 		gfx2.addComponent(recyclableComponent);
 
 		scene.callWithDelay(1200, () => {
-			let success = initToken === 2 && removeToken === 1 && finishToken === 1 && updateToken === 3;
+			let success = initToken === 1 && finishToken === 1 && updateToken === 3;
 			if (success) {
 				onFinish(true);
 			} else {
-				onFinish(false, 'Wrong token value: ' + initToken + ':' + removeToken + ':' + finishToken + ':' + updateToken);
+				onFinish(false, 'Wrong token value: ' + initToken + ':' + finishToken + ':' + updateToken);
 			}
 		});
 	});
@@ -226,7 +282,7 @@ addTest('Components removed upon scene clear', (scene, onFinish, tick) => {
 	tick();
 	scene.clearScene();
 
-	const areRemoved = components.filter(cmp => cmp.cmpState === ComponentState.REMOVED).length === 3;
+	const areRemoved = components.filter(cmp => cmp.cmpState === ComponentState.DETACHED).length === 3;
 	onFinish(areRemoved, 'Components were not removed!');
 });
 
@@ -250,7 +306,7 @@ addTest('Children destroyed with their grandparent', (scene, onFinish, tick) => 
 	tick();
 	scene.stage.destroyChildren();
 
-	const areRemoved = components.filter(cmp => cmp.cmpState === ComponentState.REMOVED).length === 3;
+	const areRemoved = components.filter(cmp => cmp.cmpState === ComponentState.DETACHED).length === 3;
 	const areDestroyed = child1.parentGameObject == null && child2.parentGameObject == null && parent.parentGameObject == null;
 	onFinish(areRemoved && areDestroyed, 'Components or objects were not removed!');
 });
@@ -275,7 +331,7 @@ addTest('Children destroyed with their parent', (scene, onFinish, tick) => {
 	tick();
 	parent.destroyChildren();
 
-	const areRemoved = components.filter(cmp => cmp.cmpState === ComponentState.REMOVED).length === 2;
+	const areRemoved = components.filter(cmp => cmp.cmpState === ComponentState.DETACHED).length === 2;
 	const areDestroyed = child1.parentGameObject == null && child2.parentGameObject == null;
 	onFinish(areRemoved && areDestroyed, 'Components or objects were not removed!');
 });
@@ -294,7 +350,7 @@ addTest('Components removed upon destroy', (scene, onFinish, tick) => {
 	tick();
 	child1.destroy();
 
-	onFinish(components[0]._cmpState === ComponentState.REMOVED, 'Component was not removed!');
+	onFinish(components[0]._cmpState === ComponentState.DETACHED, 'Component was not removed!');
 });
 
 addTest('All components updated when adding a new one', (scene, onFinish, tick) => {

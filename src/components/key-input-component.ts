@@ -55,12 +55,12 @@ export class KeyInputComponent extends Component<void> {
 		this._name = KeyInputComponent.name;
 	}
 
-	onInit() {
+	onAttach() {
 		document.addEventListener('keyup', this.onKeyUp, false);
 		document.addEventListener('keydown', this.onKeyDown, false);
 	}
 
-	onRemove() {
+	onDetach() {
 		document.removeEventListener('keyup', this.onKeyUp);
 		document.removeEventListener('keydown', this.onKeyDown);
 	}
