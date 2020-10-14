@@ -1,7 +1,7 @@
-import GameLoop from './engine/game-loop';
+import Engine, { GameLoopType, EngineConfig } from './engine/engine';
 import Component from './engine/component';
-import { Messages, Attributes, AttributeChangeMessage, StateChangeMessage, FlagChangeMessage, TagChangeMessage } from './engine/constants';
-import Flags from './engine/flags';
+import { Messages, AttributeChangeMessage, StateChangeMessage, FlagChangeMessage, TagChangeMessage } from './engine/constants';
+import Flags from './utils/flags';
 import GameObjectProxy from './engine/game-object-proxy';
 import Message from './engine/message';
 
@@ -26,25 +26,26 @@ import { KeyInputComponent, Keys } from './components/key-input-component';
 import { VirtualGamepadComponent, GamepadButtons, GamepadKeyMapper } from './components/virtual-gamepad-component';
 import { PointerInputComponent, PointerMessages } from './components/pointer-input-component';
 import Vector from './utils/vector';
-import { QueryCondition, queryConditionCheck } from './utils/query-condition';
+import { QueryCondition } from './utils/query-condition';
 
 export {
-	GameLoop,
+	Messages, AttributeChangeMessage, StateChangeMessage, FlagChangeMessage, TagChangeMessage,
+	
+	Engine, GameLoopType, EngineConfig,
 	Component,
-	Messages, Attributes, AttributeChangeMessage, StateChangeMessage, FlagChangeMessage, TagChangeMessage,
 	Flags,
 	Message,
 	GameObjectProxy,
-	GameObject, Container, ParticleContainer, Sprite, TilingSprite, Text, BitmapText, Graphics, Mesh, NineSlicePlane,
 	Builder,
 	Scene,
-	AsyncComponent,
-	ChainComponent,
-	DebugComponent,
-	FuncComponent,
-	KeyInputComponent, Keys,
+	
+	GameObject, Container, ParticleContainer, Sprite, TilingSprite, Text, BitmapText, Graphics, Mesh, NineSlicePlane,
+	
+	AsyncComponent, ChainComponent, DebugComponent, FuncComponent, KeyInputComponent, Keys,
 	VirtualGamepadComponent, GamepadButtons, GamepadKeyMapper,
 	PointerInputComponent, PointerMessages,
+	
+	
 	Vector,
-	QueryCondition, queryConditionCheck,
+	QueryCondition,
 };

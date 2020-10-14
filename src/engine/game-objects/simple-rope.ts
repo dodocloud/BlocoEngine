@@ -4,6 +4,7 @@ import Scene from '../scene';
 import GameObject from '../game-object';
 
 import AnimatedSprite from './animated-sprite';
+import BitmapText from './bitmap-text';
 import Container from './container';
 import Graphics from './graphics';
 import Mesh from './mesh';
@@ -11,7 +12,6 @@ import NineSlicePlane from './nine-slice-plane';
 import ParticleContainer from './particle-container';
 import SimpleMesh from './simple-mesh';
 import SimplePlane from './simple-plane';
-import SimpleRope from './simple-rope';
 import Sprite from './sprite';
 import Text from './text';
 import TilingSprite from './tiling-sprite';
@@ -19,13 +19,13 @@ import TilingSprite from './tiling-sprite';
 import * as PIXI from 'pixi.js';
 
 /**
- * Wrapper for PIXI.BitmapText
+ * Wrapper for PIXI.SimpleRope
  */
-export default class BitmapText extends PIXI.BitmapText implements GameObject {
+export default class SimpleRope extends PIXI.SimpleRope implements GameObject {
 	_proxy: GameObjectProxy;
 
-	constructor(name: string = '', text: string = '', fontName: string, fontSize: number, fontColor: number = 0xFFFFFF) {
-		super(text, { fontName: fontName, fontSize: fontSize, tint: fontColor });
+	constructor(name: string = '', texture: PIXI.Texture, points: PIXI.Point[], textureScale?: number) {
+		super(texture, points, textureScale);
 		this._proxy = new GameObjectProxy(name, this);
 	}
 
@@ -45,16 +45,16 @@ export default class BitmapText extends PIXI.BitmapText implements GameObject {
 		return <Container><any>this.parent;
 	}
 
-	asAnimatedSprite(): AnimatedSprite { throw new Error('Can\'t cast to this object!'); }
-    asBitmapText(): BitmapText { return this; }
+    asAnimatedSprite(): AnimatedSprite { throw new Error('Can\'t cast to this object!'); }
+    asBitmapText(): BitmapText { throw new Error('Can\'t cast to this object!'); }
     asContainer(): Container { return this; }
     asGraphics(): Graphics { throw new Error('Can\'t cast to this object!'); }
-    asMesh(): Mesh { throw new Error('Can\'t cast to this object!'); }
+    asMesh(): Mesh { return this; }
     asNineSlicePlane(): NineSlicePlane { throw new Error('Can\'t cast to this object!'); }
     asParticleContainer(): ParticleContainer { throw new Error('Can\'t cast to this object!'); }
     asSimpleMesh(): SimpleMesh { throw new Error('Can\'t cast to this object!'); }
     asSimplePlane(): SimplePlane { throw new Error('Can\'t cast to this object!'); }
-    asSimpleRope(): SimpleRope { throw new Error('Can\'t cast to this object!'); }
+    asSimpleRope(): SimpleRope { return this; }
     asSprite(): Sprite { throw new Error('Can\'t cast to this object!'); }
     asText(): Text { throw new Error('Can\'t cast to this object!'); }
     asTilingSprite(): TilingSprite { throw new Error('Can\'t cast to this object!'); }
@@ -184,7 +184,7 @@ export default class BitmapText extends PIXI.BitmapText implements GameObject {
 		if (this.parentGameObject) {
 			this.parentGameObject.destroyChild(this);
 		}
-		super.destroy({ children: true, texture: true, baseTexture: false });
+		super.destroy({ children: true });
 	}
 	destroyChildren(): void {
 		for (let child of [...this.children]) {
