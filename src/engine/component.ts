@@ -2,6 +2,7 @@
 import Message from './message';
 import Scene from './scene';
 import Container from './game-objects/container';
+import { MessageResponse } from '../../dist/engine/message';
 
 export enum ComponentState {
 	NEW = 0,
@@ -75,7 +76,7 @@ export default class Component<T = void> {
 	/**
 	 * Handles incoming message
 	 */
-	onMessage(msg: Message) {
+	onMessage(msg: Message): any | void {
 		// override
 	}
 

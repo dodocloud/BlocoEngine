@@ -297,10 +297,12 @@ export default class Scene {
 			if (!msg.expired && (msg.component == null || msg.component.id !== ent.id)) {
 				// collect responses
 				const resp = ent.onMessage(msg);
-				responses.push({
-					componentId: msg.component ? msg.component.id : undefined,
-					data: resp
-				});
+				if(resp) {
+					responses.push({
+						componentId: ent.id,
+						data: resp
+					});
+				}
 			}
 		});
 

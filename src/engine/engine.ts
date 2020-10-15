@@ -9,8 +9,8 @@ import { SceneConfig, defaultConfig as sceneDefaultConfig } from './scene';
  * Type of the game loop
  */
 export enum GameLoopType {
-	FIXED,
-	VARIABLE
+	FIXED = 'FIXED',
+	VARIABLE = 'VARIABLE'
 }
 
 /**
